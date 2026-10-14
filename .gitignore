@@ -1,1 +1,24 @@
+# 原始文档：有版权，且体积大，只放本地和 Databricks Volume
+data/raw/
 
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 密钥和本地配置，绝对不能上传
+.env
+.databrickscfg
+
+# Mac 系统文件
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
+
+# 第二阶段 dbt 生成的文件
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
