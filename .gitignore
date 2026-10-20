@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.DS_Store
+.ipynb_checkpoints/
+07_company_candidates.csv
