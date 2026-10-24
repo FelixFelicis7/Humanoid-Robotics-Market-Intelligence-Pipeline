@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Document ID | BR-HRMI |
-| Version | 0.1 (draft) |
+| Version | 0.1.1 (draft) |
 | Status | Draft — pending review against pilot results and eval baseline |
 | Owner | Project owner (data & analytics) |
 | Last updated | 2026-10-24 |
@@ -178,7 +178,7 @@ Fixed list. Definitions below are used verbatim in the extraction prompt and in 
 | BR-AMT-01 | `amount` is a number in the original currency; `currency` is an ISO-style code normalised with `upper()`. The model returns null when the amount is not stated; it never estimates. | Extraction prompt; silver 06 | Implemented |
 | BR-AMT-02 | **Amounts in different currencies are never summed together.** Aggregations use `amount_usd`, or group by `currency`. | Metric view; `genie/instructions.md` | Planned (`amount_usd`) / Implemented (instructions) |
 | BR-AMT-03 | `amount_usd = amount × fixed annual average exchange rate` for the year of `event_date`. The rate table and its source are documented in the column comment. | `gold.fct_events` | Planned — rates TBD |
-| BR-AMT-04 | **Funding amount** = `SUM(amount_usd)` over events with `event_type = 'funding'` only. Amounts on other event types (e.g. contract values in partnerships) are not funding. | Metric view `mv_event_metrics` | Planned (current `total_amount` sums all types — to be replaced) |
+| BR-AMT-04 | **Funding amount** = `SUM(amount)` over events with `event_type = 'funding'` only, in native currency (not `amount_usd` — see BR-AMT-03). Amounts on other event types (e.g. contract values in partnerships) are not funding. | `mv_event_metrics.funding_amount` | Implemented (native currency; switches to `amount_usd` once BR-AMT-03 lands) |
 | BR-AMT-05 | **Funding amount by company** is attributed only to companies with `role IN ('target','issuer')` (the recipient). Investors are not credited with the amount they invested. | Metric definition; `genie/instructions.md` | Implemented (instructions) |
 | BR-AMT-06 | Amounts are never summed after joining `fct_events` to a bridge table (one event → many rows would multiply the amount). Amount metrics are defined only on the event grain (`mv_event_metrics`). | Metric view design; `genie/instructions.md` | Implemented |
 | BR-AMT-07 | "Total funding raised by a company across rounds" counts each funding event once per recipient company. | Metric definition | Implemented (via BR-AMT-05/06) |
@@ -190,7 +190,7 @@ Fixed list. Definitions below are used verbatim in the extraction prompt and in 
 | ID | Rule | Enforced in | Status |
 |---|---|---|---|
 | BR-CNT-01 | Number of events = `COUNT(DISTINCT event_id)`. Row counts are never used as event counts after any bridge join. | `mv_event_company_metrics.distinct_event_count`; instructions | Implemented |
-| BR-CNT-02 | Number of companies = `COUNT(DISTINCT company_id)`. | Metric view (`distinct_company_count`) | Planned |
+| BR-CNT-02 | Number of companies = `COUNT(DISTINCT company_id)`. | `mv_event_company_metrics.distinct_company_count` | Implemented |
 | BR-CNT-03 | `event_company_count` counts event × company × role combinations; it is **not** an event count. | `mv_event_company_metrics` comment | Implemented |
 | BR-CNT-04 | `source_count` = number of documents reporting the event. Until de-duplication (BR-EVT-06) it is always 1. | `gold.fct_events` | Implemented (placeholder) |
 | BR-CNT-05 | Ratios (e.g. "share of partnerships involving a tier-1") are computed as numerator and denominator separately, then divided — never as an average of row-level ratios. | Metric view | Planned |
@@ -289,3 +289,4 @@ These must be stated in the README and in Genie instructions.
 | Version | Date | Change | Author |
 |---|---|---|---|
 | 0.1 | 2026-10-24 | Initial draft consolidating decisions from the implementation plan and silver/gold design notes | Project owner |
+| 0.1.1 | 2026-10-24 | Synced BR-AMT-04 and BR-CNT-02 status/definitions with the deployed metric views (`mv_event_metrics.funding_amount`, `mv_event_company_metrics.distinct_company_count`) — both were marked `Planned` but had already shipped; BR-AMT-04's formula updated from `SUM(amount_usd)` to `SUM(amount)` (native currency) to match what's actually deployed | Project owner |
