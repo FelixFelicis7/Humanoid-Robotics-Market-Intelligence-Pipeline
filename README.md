@@ -35,12 +35,13 @@ Four Databricks SQL AI functions do the heavy lifting of turning free text into 
 
 The Gold star schema exists so AI can query it accurately, not just so humans can:
 
-- **Column & table metadata** (this change) — every Gold table and column now has a `COMMENT`, so Catalog Explorer, Genie, and any LLM reading the schema know exactly what each field means and which enum values are valid.
-- **Unity Catalog Metric Views** (this change) — `gold.mv_event_metrics` defines pre-aggregated, semantically unambiguous measures (event count, funding amount by currency, etc.) over `fct_events`, so Genie/Text-to-SQL answers business questions with the *right* aggregation instead of guessing a `GROUP BY`.
-- **Genie Text-to-SQL** (next) — point Genie at the Gold schema + metric views so business users can ask natural-language questions directly.
+- **Column & table metadata** (shipped) — every Gold table and column has a `COMMENT`, so Catalog Explorer, Genie, and any LLM reading the schema know exactly what each field means and which enum values are valid.
+- **Unity Catalog Metric Views** (shipped) — `gold.mv_event_metrics` / `gold.mv_event_company_metrics` define pre-aggregated, semantically unambiguous measures (event count, funding amount by currency, etc.) over `fct_events`, so Genie/Text-to-SQL answers business questions with the *right* aggregation instead of guessing a `GROUP BY`.
+- **Business rules** (shipped) — [`docs/business_rules.md`](docs/business_rules.md) is the single source of truth for how every business concept and metric is defined and where it's enforced; [`docs/data_dictionary.md`](docs/data_dictionary.md) and [`docs/prompt_issues.md`](docs/prompt_issues.md) back it with a full schema reference and a running log of known extraction edge cases.
+- **Genie Text-to-SQL** (instructions shipped, space not yet wired up) — [`genie/instructions.md`](genie/instructions.md) translates the business rules into the prose a Genie space needs (terminology, counting/currency rules, known limitations to disclose) — comments and metric views describe *what* the data is, this describes *how to interpret it correctly*.
 - **Self-built RAG / vector search** (planned) — embed `evidence_quote`/`summary_en` text for semantic search over events, complementing the structured Text-to-SQL path.
 
-The throughline: **DE's role in an AI-native stack isn't just "move data" — it's making sure AI can use that data to answer questions *correctly*.** Clean, well-described, semantically consistent Gold tables are what make the AI-on-data half possible at all.
+The throughline: **DE's role in an AI-native stack isn't just "move data" — it's making sure AI can use that data to answer questions *correctly*.** Clean, well-described, semantically consistent Gold tables, explicit business rules, and Genie instructions are what make the AI-on-data half possible at all.
 
 ## Star Schema (Gold Layer)
 
@@ -131,20 +132,39 @@ PK/FK constraints are declared in SQL (`scripts/gold/99_gold_constraints.dbquery
 scripts/
 ├── bronze/   raw ingestion (company seeds, documents, manifest)
 ├── silver/   cleaning, translation, relevance classification, AI extraction, company resolution
-└── gold/     star schema (fact, dimensions, bridges) + constraints + quality checks
+└── gold/     star schema (fact, dimensions, bridges) + constraints + quality checks + sql/ (comment & metric view DDL)
+docs/
+├── business_rules.md     single source of truth for business definitions and where each is enforced
+├── data_dictionary.md    full Silver/Gold schema reference + enumerated values
+├── evaluation.md         AI-extraction evaluation methodology and (pending) results
+└── prompt_issues.md      running log of known AI-extraction edge cases
+genie/
+└── instructions.md       business rules translated into Genie space instructions
+sql/extract/
+└── CHANGELOG.md          extraction prompt version history
 datasets/
 └── review/   manual-review exports
 ```
+
+## Documentation
+
+- [`docs/business_rules.md`](docs/business_rules.md) — the authoritative definition of every business concept and metric used across Silver, Gold, the metric views, and Genie, with a status (`Implemented`/`Planned`/`Proposed`/`To verify`) and an enforcement layer for each rule.
+- [`docs/data_dictionary.md`](docs/data_dictionary.md) — full table/column reference for Silver and Gold, plus a consolidated enumerated-values table, readable without Databricks access.
+- [`docs/evaluation.md`](docs/evaluation.md) — how AI-extraction accuracy is measured against the pilot ground truth, and what's pending before real numbers land here.
+- [`docs/prompt_issues.md`](docs/prompt_issues.md) — known extraction edge cases (e.g. ambiguous company-name matches, inconsistent role labels) and their status.
+- [`genie/instructions.md`](genie/instructions.md) — the business rules restated as the prose a Genie space needs to answer questions correctly.
 
 ## Roadmap / known limitations
 
 This is the first complete version of the pipeline. Shipped as-is rather than delayed for the items below, which are the known next steps:
 
-- **Event de-duplication is a placeholder.** `silver/11_silver_event_dedup.dbquery.ipynb` currently maps each extracted event 1:1 to itself (`fct_events.source_count` is always `1`); real cross-document dedup (same event reported by multiple sources) is planned.
-- **`fct_events.publish_date` is a boolean, not a date.** It flags whether `event_date` was inferred from the source document's publish date rather than stated explicitly in the text — it is *not* the document's publish date (that's `dim_source.publish_date`). The name is confusing and will be revisited; documented accurately in the column comment for now.
+- **Event de-duplication is a placeholder.** `silver/11_silver_event_dedup.dbquery.ipynb` currently maps each extracted event 1:1 to itself (`fct_events.source_count` is always `1`); real cross-document dedup (same event reported by multiple sources) is planned (`BR-EVT-06`).
+- **`fct_events.publish_date` is a boolean, not a date.** It flags whether `event_date` was inferred from the source document's publish date rather than stated explicitly in the text — it is *not* the document's publish date (that's `dim_source.publish_date`). The name is confusing and will be revisited (`BR-DATE-06`); documented accurately in the column comment for now.
+- **No real evaluation numbers yet.** `docs/evaluation.md` defines the methodology and ground truth, but scoring the actual extraction output hasn't been run against it yet — see that file's Results section.
+- **No currency conversion.** Monetary measures are native-currency only; always grouped/sliced by `currency` (`BR-AMT`).
 - **No CI/CD or Databricks Asset Bundle yet.** Deployment today is manual notebook execution in the workspace.
 - **No incremental/streaming ingestion.** Bronze layer does full-table overwrite on every run.
 - **dbt-based testing/lineage/docs** — planned, not yet implemented.
-- **Genie Text-to-SQL + a self-built RAG/vector-search layer** — planned next, building on the metric views and column comments added in this change.
+- **Genie space itself isn't wired up yet** — `genie/instructions.md` is ready to load into one; a self-built RAG/vector-search layer is planned after that.
 
-**Status: v0.1** — first end-to-end Bronze→Silver→Gold pipeline with AI-based event extraction, a documented star schema, and metric views for AI/BI consumption.
+**Status: v0.2** — adds the business-rules layer (comments + metric views already shipped in v0.1) on top of the end-to-end Bronze→Silver→Gold pipeline with AI-based event extraction and a documented star schema.
