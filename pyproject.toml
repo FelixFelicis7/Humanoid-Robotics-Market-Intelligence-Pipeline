@@ -1,0 +1,9 @@
+[project]
+name = "humanoid-robotics-market-intelligence"
+version = "0.1.0"
+description = "Humanoid robotics market intelligence: Databricks lakehouse + RAG app"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "databricks-sdk>=0.40",   # connect to Databricks: vector index + LLM serving endpoint
+]
