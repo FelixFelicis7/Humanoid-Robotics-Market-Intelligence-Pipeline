@@ -197,6 +197,7 @@ Rules:
   use only the "Companies" line. If a company is not listed there, do not label it.
 - After every claim, cite the source id in square brackets, e.g. [D0004].
   Cite several sources like [D0004][D0001]. Only use ids that appear in the sources.
+  Never mention source ids anywhere else in the text.
 - Mention dates when describing announcements, deals or funding.
 - If the sources do not contain the answer, reply exactly: "{NO_ANSWER}"
 - Answer in English, concisely (a short paragraph or a few bullet points)."""
@@ -279,6 +280,8 @@ def format_citations(raw_answer: str, chunks: list[Chunk]) -> tuple[str, list[So
 
     # The LLM sometimes writes full-width brackets 【D0004】 or ［D0004］; normalise to [ ]
     normalised = raw_answer.translate(str.maketrans({"【": "[", "】": "]", "［": "[", "］": "]"}))
+    # Drop ids written in the prose, e.g. "with Humanoid (D0004)" -> "with Humanoid"
+    normalised = re.sub(r"\s*\(\s*D\d{3,}(?:\s*[,;]\s*D\d{3,})*\s*\)", "", normalised)
     answer = _BRACKET.sub(replace, normalised)
     answer = re.sub(r"(\[\d+\])(?:\1)+", r"\1", answer)  # [2][2] -> [2]
     answer = re.sub(r"[ \t]+([.,;:])", r"\1", answer)   # tidy "text ." after removals
