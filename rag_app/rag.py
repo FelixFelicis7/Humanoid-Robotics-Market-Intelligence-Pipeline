@@ -312,13 +312,35 @@ def answer_question(question: str,
                     source_types: list[str] | None = None,
                     company_type: str | None = None) -> RagAnswer:
     chunks = retrieve(question, top_k, company_id, year_from, source_types, company_type)
+    hint = _filter_hint(company_id, year_from, source_types, company_type)
     if not chunks:
-        return RagAnswer(question=question, answer=NO_ANSWER)
+        return RagAnswer(question=question, answer=NO_ANSWER + hint)
 
     raw = generate(build_prompt(question, chunks))
     answer, sources = format_citations(raw, chunks)
+    if NO_ANSWER.rstrip(".") in answer:
+        # The LLM found nothing useful in the retrieved chunks: the filters may be the reason
+        answer = NO_ANSWER + hint
+        sources = []
     return RagAnswer(question=question, answer=answer, sources=sources,
                      chunks=chunks, raw_answer=raw)
+
+
+def _filter_hint(company_id, year_from, source_types, company_type) -> str:
+    """Extra sentence for 'not found' answers when filters were used ('' if none)."""
+    used = []
+    if company_id:
+        used.append(f"company = {company_id}")
+    if company_type:
+        used.append(f"company type = {company_type}")
+    if year_from:
+        used.append(f"from {year_from}")
+    if source_types:
+        used.append("source type = " + ", ".join(source_types))
+    if not used:
+        return ""
+    return ("\n\n_The selected filters (" + "; ".join(used) + ") may be too narrow. "
+            "Try removing some of them._")
 
 
 # ---------------------------------------------------------------------------
