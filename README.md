@@ -14,7 +14,7 @@ Bronze (raw)  →  Silver (cleaned + AI-extracted)  →  Gold (star schema)
 
 | Layer | What happens | Key tables |
 |---|---|---|
-| **Bronze** | Batch-ingest raw CSV seeds, raw document text, and a manifest describing each document. Full overwrite, no transformation. | `bronze.company_seed`, `bronze.company_other`, `bronze.company_alias`, `bronze.documents`, `bronze.manifest_pilot` |
+| **Bronze** | Batch-ingest raw CSV seeds, raw document text, and a manifest describing each document. Full overwrite, no transformation. | `bronze.company_seed`, `bronze.company_other`, `bronze.company_alias`, `bronze.documents`, `bronze.manifest` |
 | **Silver** | Clean text, translate, classify relevance, and run AI extraction into structured events; resolve company names against a master list. | `silver.documents_clean`, `silver.documents_relevance`, `silver.documents_extractions`, `silver.events_extracted`, `silver.event_companies`, `silver.company` |
 | **Gold** | Star schema: one fact table of de-duplicated events, dimensions, and bridge tables for the many-to-many relationships. | `gold.fct_events`, `gold.dim_date`, `gold.dim_source`, `gold.dim_company`, `gold.dim_technology`, `gold.bridge_event_company`, `gold.bridge_event_technology`, `gold.bridge_event_source` |
 

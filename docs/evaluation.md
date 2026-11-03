@@ -6,7 +6,7 @@ This document defines how the accuracy of the AI extraction step (`ai_query` in 
 
 ## Ground truth: the pilot set
 
-`data/manifest/manifest_pilot.csv` (collection-side file, not synced to this repo — see `docs/business_rules.md` BR-SCOPE-04 on where evaluation labels live) carries two columns that make up the current ground truth:
+`data/manifest/manifest.csv` (collection-side file, not synced to this repo — see `docs/business_rules.md` BR-SCOPE-04 on where evaluation labels live) carries two columns that make up the current ground truth:
 
 - `in_eval_set` (`Y`/`N`) — flags which documents are held out for evaluation rather than used only to build the gold tables.
 - `expected_events` — a short, human-written description of the event(s) a correct extraction should produce for that document.

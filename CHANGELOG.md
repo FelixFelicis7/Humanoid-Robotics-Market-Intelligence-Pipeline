@@ -26,6 +26,12 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 
 ## [Unreleased]
 
+### Changed
+- Manifest renamed from `manifest_pilot.csv` / `bronze.manifest_pilot` to
+  `manifest.csv` / `bronze.manifest`, so new documents are added as rows in the
+  same file and the Job does not need to change. Updated in `bronze_manifest` and
+  `03_silver_documents`.
+
 ### Planned
 - Databricks Job orchestrating bronze → silver → gold → chunks → vector index sync,
   exported as YAML to `orchestration/`.
