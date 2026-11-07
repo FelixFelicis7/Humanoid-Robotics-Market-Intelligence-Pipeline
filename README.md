@@ -26,7 +26,7 @@ Most DE pipelines either skip AI entirely or only use it as a chatbot layer on t
 
 Four Databricks SQL AI functions do the heavy lifting of turning free text into structured rows:
 
-- **`ai_translate`** — translates non-English (`zh`) titles, publishers, and body text to English before anything downstream touches them (`scripts/silver/03_silver_documents.ipynb`).
+- **`ai_translate`** — translates non-English (`zh`) titles, publishers, and body text to English before anything downstream touches them. Results are stored append-only in `silver.document_translations` (`scripts/silver/sql/03a_silver_document_translations.sql`), so each document is translated once; `scripts/silver/03_silver_documents.ipynb` joins them.
 - **`ai_classify`** — classifies each cleaned article as `about_humanoid_robots` / `not_about_humanoid_robots`, so only relevant documents reach the expensive extraction step (`scripts/silver/04_silver_doc_relevance.dbquery.ipynb`).
 - **`ai_query`** (the core step) — runs `databricks-gpt-oss-120b` against each relevant document with a strict JSON schema (`responseFormat`), extracting 0–many events per article: type, status, date, companies and their role, technology areas, amount/currency, region, and a verbatim evidence quote (`scripts/silver/05_silver_document_extraction.dbquery.ipynb`). The extraction is idempotent — already-extracted documents are skipped.
 - **`from_json`** — parses the AI's structured JSON output back into typed columns feeding `silver.document_summaries` and `silver.events_extracted` (`scripts/silver/06_silver_extraction_parse.dbquery.ipynb`).
@@ -60,7 +60,7 @@ erDiagram
         string event_id PK
         string event_type
         date event_date FK
-        boolean publish_date
+        boolean date_is_publish_date
         double amount
         string currency
         string region
@@ -159,7 +159,6 @@ datasets/
 This is the first complete version of the pipeline. Shipped as-is rather than delayed for the items below, which are the known next steps:
 
 - **Event de-duplication is a placeholder.** `silver/11_silver_event_dedup.dbquery.ipynb` currently maps each extracted event 1:1 to itself (`fct_events.source_count` is always `1`); real cross-document dedup (same event reported by multiple sources) is planned (`BR-EVT-06`).
-- **`fct_events.publish_date` is a boolean, not a date.** It flags whether `event_date` was inferred from the source document's publish date rather than stated explicitly in the text — it is *not* the document's publish date (that's `dim_source.publish_date`). The name is confusing and will be revisited (`BR-DATE-06`); documented accurately in the column comment for now.
 - **No real evaluation numbers yet.** `docs/evaluation.md` defines the methodology and ground truth, but scoring the actual extraction output hasn't been run against it yet — see that file's Results section.
 - **No currency conversion.** Monetary measures are native-currency only; always grouped/sliced by `currency` (`BR-AMT`).
 - **No CI/CD or Databricks Asset Bundle yet.** Deployment today is manual notebook execution in the workspace.

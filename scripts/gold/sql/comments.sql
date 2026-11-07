@@ -104,8 +104,8 @@ ALTER TABLE humanoid_robotics.gold.fct_events ALTER COLUMN event_type COMMENT
   'Category of the event. One of: funding, partnership, product_launch, production_plan, policy, other.';
 ALTER TABLE humanoid_robotics.gold.fct_events ALTER COLUMN event_date COMMENT
   'Date the event occurred, as stated or inferred by the AI extraction model. Falls back to the source document publish date when no explicit event date is stated in the text. Foreign key to dim_date.date.';
-ALTER TABLE humanoid_robotics.gold.fct_events ALTER COLUMN publish_date COMMENT
-  'BOOLEAN, not a date. True when event_date above was inferred from the source document publish date rather than an explicit date stated in the text (i.e. no explicit event date was found in the article). This is NOT the document publish date -- see dim_source.publish_date for that. Name is a known issue (collides with dim_source.publish_date); kept as-is in this change, tracked in README Known Limitations for a future rename.';
+ALTER TABLE humanoid_robotics.gold.fct_events ALTER COLUMN date_is_publish_date COMMENT
+  'True when event_date above was filled in from the source document publish date because the text states no explicit event date; such dates are approximate (the event may have happened earlier). False when event_date was stated in the text. The document publish date itself is dim_source.publish_date.';
 ALTER TABLE humanoid_robotics.gold.fct_events ALTER COLUMN amount COMMENT
   'Monetary amount associated with the event (e.g. funding round size), denominated in currency. Null if no amount was stated or not applicable to this event_type.';
 ALTER TABLE humanoid_robotics.gold.fct_events ALTER COLUMN currency COMMENT

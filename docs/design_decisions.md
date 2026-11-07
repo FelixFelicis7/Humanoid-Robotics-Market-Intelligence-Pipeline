@@ -27,6 +27,7 @@ Status values: *Accepted* (in use), *Deferred* (decided, not yet implemented),
 | 12 | Citations are handled in code, not trusted from the LLM | RAG | Accepted |
 | 13 | Local app calls Databricks remotely; API separate from UI | RAG | Accepted |
 | 14 | Source text never goes to GitHub | Governance | Accepted |
+| 15 | Translations are append-only; 03 stops if one is missing | AI cost | Accepted |
 
 ---
 
@@ -318,3 +319,32 @@ URLs, schemas, extracted fields and self-written summaries only.
 
 **Consequences.** Others cannot rerun the pipeline exactly from the repository alone.
 The README therefore relies on screenshots and a demo video to show results.
+
+---
+
+## 15. Translations are append-only; 03 stops if one is missing
+
+**Context.** `03_silver_documents` called `ai_translate` on every Chinese document
+each time it ran, because the table is fully overwritten. With ≥25% Chinese
+documents planned, every Job run would pay for the same translations again.
+
+**Decision.**
+- `silver.document_translations` is append-only, filled by
+  `03a_silver_document_translations.sql` before `03` runs. A document is translated
+  only if no successful translation exists for the same `doc_id` and `source_hash`
+  (SHA-256 of title, publisher and raw text), so a changed text is retranslated.
+- `03` joins the latest successful translation and makes no AI calls.
+- If a Chinese document has no translation, `03` raises an error instead of passing
+  the Chinese text on. AI extraction is incremental by `doc_id`, so a document
+  extracted from untranslated text would never be extracted again.
+
+**Alternatives.** Keep calling `ai_translate` in `03` (repeated cost); translate
+only titles and let `ai_query` and a multilingual embedding model read Chinese
+directly (cheaper, and `evidence_quote` would be the original wording, but it
+changes extraction and retrieval behaviour and needs testing first).
+
+**Consequences.** Each document is translated once, and reruns are free. The hash
+expression exists in two places (SQL in `03a`, PySpark in `03`) and must stay
+identical. Not handled yet: if a source text changes after extraction, the
+document is retranslated but not re-extracted.
+

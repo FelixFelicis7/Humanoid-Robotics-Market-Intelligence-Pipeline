@@ -104,7 +104,7 @@ Fixed list. Definitions below are used verbatim in the extraction prompt and in 
 | BR-DATE-03 | When answering date-sensitive questions, results that rely on approximate dates (`date_is_publish_date = true`) should be flagged to the user. | `genie/instructions.md` | Implemented (instructions) |
 | BR-DATE-04 | Calendar attributes (`year`, `quarter`, `year_quarter`, `month`) come from `gold.dim_date`, joined on `event_date`. | `gold.dim_date`; `mv_event_metrics` | Implemented |
 | BR-DATE-05 | "Last year" / "去年" = the **previous calendar year** (e.g. asked in 2026 → 2025-01-01 to 2025-12-31). "Past 12 months" / "最近 12 个月" = rolling 12 months up to today. "This year" = current calendar year to date. | `genie/instructions.md` | Implemented (instructions) |
-| BR-DATE-06 | Rename `date_is_publish_date` to a clearer name (`event_date_is_imputed`, or `event_date_source` with values `text` / `publish_date`). | silver 06 and downstream | Proposed |
+| BR-DATE-06 | The imputed-date flag is named `date_is_publish_date` everywhere (was `publish_date` in `silver.events_extracted`, `silver.event_dedup_map` and `gold.fct_events`, which collided with the real `dim_source.publish_date`). | `silver/sql/06`, `11`, `gold/sql/01`, `comments.sql` | Implemented |
 
 ---
 

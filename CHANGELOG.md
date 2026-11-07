@@ -26,11 +26,31 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 
 ## [Unreleased]
 
+### Added
+- `scripts/silver/sql/` and `scripts/gold/sql/`: plain `.sql` versions of the SQL
+  steps (silver 04–12, gold 01–08 and 99), for Job "SQL file" tasks and the later
+  move to dbt. Original notebooks and `.dbquery.ipynb` files are kept unchanged.
+  Check queries were moved out of the build files into `12_silver_quality_check.sql`.
+
 ### Changed
 - Manifest renamed from `manifest_pilot.csv` / `bronze.manifest_pilot` to
   `manifest.csv` / `bronze.manifest`, so new documents are added as rows in the
   same file and the Job does not need to change. Updated in `bronze_manifest` and
   `03_silver_documents`.
+- Translation is now incremental. New append-only table
+  `silver.document_translations` (`scripts/silver/sql/03a_silver_document_translations.sql`)
+  translates each Chinese document once, keyed on `doc_id` + a SHA-256 hash of
+  title, publisher and text. `03_silver_documents` joins it instead of calling
+  `ai_translate` on every run, and fails if a Chinese document has no translation.
+  New Job task `silver_03a_document_translations` runs before `silver_03_documents`.
+- Renamed the imputed-date flag `publish_date` → `date_is_publish_date` in
+  `silver.events_extracted`, `silver.event_dedup_map` and `gold.fct_events`
+  (BR-DATE-06). The old name collided with the real `dim_source.publish_date`.
+  Only the `.sql` versions were changed; the original notebooks are reference only.
+
+### Known issues (new)
+- Embedding model `databricks-gte-large-en` is English-only; switch to a
+  multilingual model before adding Chinese documents.
 
 ### Planned
 - Databricks Job orchestrating bronze → silver → gold → chunks → vector index sync,
