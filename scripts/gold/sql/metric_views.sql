@@ -22,7 +22,7 @@
 -- dim_date on event_date. Safe to aggregate directly -- no fan-out,
 -- so SUM/AVG/COUNT cannot double-count.
 -- ---------------------------------------------------------------------
-CREATE VIEW humanoid_robotics.gold.mv_event_metrics
+CREATE OR REPLACE VIEW humanoid_robotics.gold.mv_event_metrics
 WITH METRICS
 LANGUAGE YAML
 AS $$
@@ -98,7 +98,7 @@ $$;
 -- double-count an event's amount once per linked company) -- use
 -- mv_event_metrics for funding_amount.
 -- ---------------------------------------------------------------------
-CREATE VIEW humanoid_robotics.gold.mv_event_company_metrics
+CREATE OR REPLACE VIEW humanoid_robotics.gold.mv_event_company_metrics
 WITH METRICS
 LANGUAGE YAML
 AS $$
