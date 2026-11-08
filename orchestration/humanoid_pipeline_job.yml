@@ -1,0 +1,266 @@
+resources:
+  jobs:
+    humanoid_robotics_dwh_pipeline:
+      name: humanoid robotics dwh pipeline
+      description: "End-to-end pipeline: bronze → silver (translation, AI extraction)
+        → gold star schema + RAG vector index. Run after uploading new
+        documents."
+      email_notifications:
+        on_failure:
+          - <your-email>
+        on_duration_warning_threshold_exceeded:
+          - <your-email>
+      health:
+        rules:
+          - metric: RUN_DURATION_SECONDS
+            op: GREATER_THAN
+            value: 900
+      tasks:
+        - task_key: bronze_company_info
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/bronze/bronze_company_info
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: bronze_documents
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/bronze/bronze_documents
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: bronze_manifest
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/bronze/bronze_manifest
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: gold_dim_date
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/02_gold_dim_date.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_dim_technology
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/05_gold_dim_technology.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: silver_01_companies
+          depends_on:
+            - task_key: bronze_company_info
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/01_silver_companies
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: gold_dim_company
+          depends_on:
+            - task_key: silver_01_companies
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/04_gold_dim_company.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: silver_02_company_alias
+          depends_on:
+            - task_key: bronze_company_info
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/02_silver_company_alias
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: silver_03a_document_translations
+          depends_on:
+            - task_key: bronze_manifest
+            - task_key: bronze_documents
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/03a_silver_document_translations.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+        - task_key: silver_03_documents
+          depends_on:
+            - task_key: silver_03a_document_translations
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/03_silver_documents
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: silver_04_doc_relevance
+          depends_on:
+            - task_key: silver_03_documents
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/04_silver_doc_relevance.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+        - task_key: silver_05_extraction
+          depends_on:
+            - task_key: silver_04_doc_relevance
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/05_silver_document_extraction.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          timeout_seconds: 1500
+          health:
+            rules:
+              - metric: RUN_DURATION_SECONDS
+                op: GREATER_THAN
+                value: 300
+        - task_key: silver_06_extraction_parse
+          depends_on:
+            - task_key: silver_05_extraction
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/06_silver_extraction_parse.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_dim_source
+          depends_on:
+            - task_key: silver_06_extraction_parse
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/03_gold_dim_source.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: silver_09_event_companies
+          depends_on:
+            - task_key: silver_06_extraction_parse
+            - task_key: silver_01_companies
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/09_silver_event_companies.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: silver_11_event_dedup
+          depends_on:
+            - task_key: silver_06_extraction_parse
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/11_silver_event_dedup.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_bridge_event_company
+          depends_on:
+            - task_key: silver_09_event_companies
+            - task_key: silver_11_event_dedup
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/06_gold_bridge_event_company.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_bridge_event_source
+          depends_on:
+            - task_key: silver_11_event_dedup
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/08_gold_bridge_event_source.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_bridge_event_technology
+          depends_on:
+            - task_key: silver_11_event_dedup
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/07_gold_bridge_event_technology.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_fct_events
+          depends_on:
+            - task_key: silver_11_event_dedup
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/01_gold_fct_events.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_constraints
+          depends_on:
+            - task_key: gold_fct_events
+            - task_key: gold_bridge_event_company
+            - task_key: gold_dim_company
+            - task_key: gold_dim_date
+            - task_key: gold_dim_technology
+            - task_key: gold_dim_source
+            - task_key: gold_bridge_event_technology
+            - task_key: gold_bridge_event_source
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/99_gold_constraints.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_comments
+          depends_on:
+            - task_key: gold_constraints
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/comments.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: gold_metric_views
+          depends_on:
+            - task_key: gold_comments
+          sql_task:
+            file:
+              path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/gold/sql/metric_views.sql
+              source: WORKSPACE
+            warehouse_id: 22edfdc6f695ff64
+          max_retries: 1
+          min_retry_interval_millis: 60000
+        - task_key: silver_13_doc_chunks
+          depends_on:
+            - task_key: silver_09_event_companies
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/13_silver_doc_chunks
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: rag_01_vector_index
+          depends_on:
+            - task_key: silver_13_doc_chunks
+          notebook_task:
+            notebook_path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/rag/01_vector_index
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+      tags:
+        env: dev
+        project: humanoid-market-intel
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
