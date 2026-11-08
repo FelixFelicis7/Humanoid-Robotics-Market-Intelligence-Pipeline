@@ -67,3 +67,13 @@ FROM humanoid_robotics.silver.events_extracted
 LATERAL VIEW explode(companies) t AS c
 GROUP BY ALL
 ORDER BY name_upper;
+
+-------------------------------------------------------------------
+-- Check 5: Incremental AI steps
+-- Run before and after a Job run. With no new documents, n and last_ts
+-- must not change. With k new documents, n grows by at most k per step.
+SELECT 'translations' AS step, count(*) AS n, max(translated_at) AS last_ts FROM humanoid_robotics.silver.document_translations
+UNION ALL
+SELECT 'relevance',   count(*), max(classified_at) FROM humanoid_robotics.silver.documents_relevance
+UNION ALL
+SELECT 'extractions', count(*), max(extracted_at)  FROM humanoid_robotics.silver.documents_extractions;

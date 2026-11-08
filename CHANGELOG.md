@@ -26,11 +26,34 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 
 ## [Unreleased]
 
+### Planned
+- Test Chinese-language questions against the RAG app once Chinese documents are
+  loaded. Switch to a multilingual embedding model only if Chinese questions are to
+  be supported, or if translation option B (keep Chinese body text) is adopted.
+- Expand the corpus from 6 to ≥100 documents (≥25% Chinese), loaded in batches.
+- Evaluation: RAG question set (hit@k, citation accuracy) and a manually labelled
+  30-document set for AI extraction (v1 baseline).
+
+---
+
+## [0.2.0] - 2026-11-08
+
+The whole pipeline runs as one Databricks Job, and reruns do not repeat AI calls.
+
 ### Added
+- Databricks Job `humanoid robotics dwh pipeline` (25 tasks): bronze → silver
+  (translation, relevance, AI extraction) → gold star schema, constraints, comments,
+  metric views, plus `doc_chunks` → vector index sync. Max concurrent runs = 1,
+  no automatic retries on the AI tasks. Exported to
+  `orchestration/humanoid_pipeline_job.yml` (Declarative Automation Bundles format).
+  Verified: a second run with no new documents makes no new AI calls
+  (translations, relevance and extraction row counts unchanged).
 - `scripts/silver/sql/` and `scripts/gold/sql/`: plain `.sql` versions of the SQL
   steps (silver 04–12, gold 01–08 and 99), for Job "SQL file" tasks and the later
   move to dbt. Original notebooks and `.dbquery.ipynb` files are kept unchanged.
   Check queries were moved out of the build files into `12_silver_quality_check.sql`.
+- `12_silver_quality_check.sql` Check 5: row counts and latest timestamps of the
+  three AI tables, to compare before and after a Job run.
 
 ### Changed
 - Manifest renamed from `manifest_pilot.csv` / `bronze.manifest_pilot` to
@@ -55,17 +78,18 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 - `metric_views.sql`: `CREATE VIEW` → `CREATE OR REPLACE VIEW` so the Job can rerun,
   and removed `;` and `--` from the YAML inside `$$ ... $$`. Job "SQL file" tasks
   split statements on `;` without respecting `$$` blocks.
+- `gold.dim_company` rebuilt from the trimmed `silver.company` (first Job run).
 
-### Known issues (new)
-- Embedding model `databricks-gte-large-en` is English-only; switch to a
-  multilingual model before adding Chinese documents.
-
-### Planned
-- Databricks Job orchestrating bronze → silver → gold → chunks → vector index sync,
-  exported as YAML to `orchestration/`.
-- Expand the corpus from 6 to ≥100 documents (≥25% Chinese), loaded in batches.
-- Evaluation: RAG question set (hit@k, citation accuracy) and a manually labelled
-  30-document set for AI extraction (v1 baseline).
+### Known issues
+- Embedding model `databricks-gte-large-en` is English-only. This is fine as long as
+  Chinese documents are fully translated before chunking (current design), but
+  questions asked in Chinese will not retrieve well.
+- `doc_chunks` is fully overwritten on each run, so every index sync re-embeds all
+  chunks. Fine at 6 documents; switch to MERGE as the corpus grows.
+- If a document's source text changes after extraction, it is retranslated but not
+  re-extracted (extraction is incremental by `doc_id`).
+- The original notebooks / `.dbquery.ipynb` files and the new `.sql` files contain
+  the same logic. The Job runs the `.sql` files; the originals are reference only.
 
 ---
 
@@ -155,5 +179,6 @@ documents (D0001–D0006).
   ranked 7th–10th); default settings to be decided by evaluation.
 - Only 6 English documents; results are not yet statistically meaningful.
 
-[Unreleased]: https://github.com/FelixFelicis7/Humanoid-Robotics-Market-Intelligence-Pipeline/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/FelixFelicis7/Humanoid-Robotics-Market-Intelligence-Pipeline/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/FelixFelicis7/Humanoid-Robotics-Market-Intelligence-Pipeline/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/FelixFelicis7/Humanoid-Robotics-Market-Intelligence-Pipeline/releases/tag/v0.1.0
