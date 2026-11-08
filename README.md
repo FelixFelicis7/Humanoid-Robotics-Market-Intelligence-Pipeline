@@ -38,7 +38,7 @@ The Gold star schema exists so AI can query it accurately, not just so humans ca
 - **Column & table metadata** (shipped) — every Gold table and column has a `COMMENT`, so Catalog Explorer, Genie, and any LLM reading the schema know exactly what each field means and which enum values are valid.
 - **Unity Catalog Metric Views** (shipped) — `gold.mv_event_metrics` / `gold.mv_event_company_metrics` define pre-aggregated, semantically unambiguous measures (event count, funding amount by currency, etc.) over `fct_events`, so Genie/Text-to-SQL answers business questions with the *right* aggregation instead of guessing a `GROUP BY`.
 - **Business rules** (shipped) — [`docs/business_rules.md`](docs/business_rules.md) is the single source of truth for how every business concept and metric is defined and where it's enforced; [`docs/data_dictionary.md`](docs/data_dictionary.md) and [`docs/prompt_issues.md`](docs/prompt_issues.md) back it with a full schema reference and a running log of known extraction edge cases.
-- **Genie Text-to-SQL** (instructions shipped, space not yet wired up) — [`genie/instructions.md`](genie/instructions.md) translates the business rules into the prose a Genie space needs (terminology, counting/currency rules, known limitations to disclose) — comments and metric views describe *what* the data is, this describes *how to interpret it correctly*.
+- **Genie Text-to-SQL** (instructions shipped) — [`genie/instructions.md`](genie/instructions.md) translates the business rules into the prose a Genie space needs (terminology, counting/currency rules, known limitations to disclose) — comments and metric views describe *what* the data is, this describes *how to interpret it correctly*.
 - **Self-built RAG / vector search** (planned) — embed `evidence_quote`/`summary_en` text for semantic search over events, complementing the structured Text-to-SQL path.
 
 The throughline: **DE's role in an AI-native stack isn't just "move data" — it's making sure AI can use that data to answer questions *correctly*.** Clean, well-described, semantically consistent Gold tables, explicit business rules, and Genie instructions are what make the AI-on-data half possible at all.
@@ -120,7 +120,7 @@ erDiagram
 
 **Fact**: `fct_events` — one row per de-duplicated event. **Dimensions**: `dim_date`, `dim_source`, `dim_company`, `dim_technology`. **Bridges**: because one event can involve several companies (with different roles), relate to several technology areas, and be reported by several documents, those relationships are modeled as many-to-many bridge tables rather than flattened onto the fact row.
 
-PK/FK constraints are declared in SQL (`scripts/gold/99_gold_constraints.dbquery.ipynb`) — informational rather than enforced, but visible in Catalog Explorer and used by Genie to understand how the tables relate.
+PK/FK constraints are declared in SQL (`scripts/gold/sql/99_gold_constraints.sql`) — informational rather than enforced, but visible in Catalog Explorer and used by Genie to understand how the tables relate.
 
 ## Data quality
 
@@ -164,6 +164,6 @@ This is the first complete version of the pipeline. Shipped as-is rather than de
 - **No CI/CD or Databricks Asset Bundle yet.** Deployment today is manual notebook execution in the workspace.
 - **No incremental/streaming ingestion.** Bronze layer does full-table overwrite on every run.
 - **dbt-based testing/lineage/docs** — planned, not yet implemented.
-- **Genie space itself isn't wired up yet** — `genie/instructions.md` is ready to load into one; a self-built RAG/vector-search layer is planned after that.
+
 
 **Status: v0.2** — adds the business-rules layer (comments + metric views already shipped in v0.1) on top of the end-to-end Bronze→Silver→Gold pipeline with AI-based event extraction and a documented star schema.
