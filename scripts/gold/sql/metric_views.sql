@@ -14,6 +14,9 @@
 --
 -- Run AFTER comments.sql (not required, but keeps metadata complete
 -- from the start) and after all 8 gold tables exist.
+--
+-- NOTE: Job "SQL file" tasks split statements on ';' without respecting
+-- $$ ... $$ blocks. Do not use ';' (or '--') inside the YAML below.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -50,7 +53,7 @@ dimensions:
     comment: 'Region where the event took place.'
   - name: currency
     expr: currency
-    comment: 'ISO 4217 currency code of amount/funding_amount. Always group by this before summing a monetary measure -- amounts are in native currency, not converted to a common currency.'
+    comment: 'ISO 4217 currency code of amount/funding_amount. Always group by this before summing a monetary measure - amounts are in native currency, not converted to a common currency.'
   - name: year
     expr: dim_date.year
   - name: quarter
@@ -76,15 +79,15 @@ measures:
     expr: SUM(CASE WHEN event_type = 'funding' THEN amount END)
     comment: >
       Total funding amount in NATIVE currency (no FX conversion exists
-      in this schema -- there is no rate table). Only meaningful
-      grouped by the currency dimension; summing across currencies
+      in this schema - there is no rate table). Only meaningful
+      grouped by the currency dimension. Summing across currencies
       mixes units and is wrong. Do not rename/treat as USD without
       adding a real FX conversion table first.
     display_name: 'Funding Amount (native currency)'
     synonyms: ['funding total', 'total raised']
   - name: avg_amount
     expr: AVG(amount)
-    comment: 'Average event amount in native currency. Group by currency -- see funding_amount comment.'
+    comment: 'Average event amount in native currency. Group by currency - see funding_amount comment.'
 $$;
 
 -- ---------------------------------------------------------------------
@@ -109,7 +112,7 @@ comment: >
   dim_company: event counts sliced by company and role (e.g. "how many
   funding events was Company X an investor in"). Use distinct_event_count,
   not event_company_count, when a company/role combination should not
-  be double-counted. Does not aggregate monetary amounts -- see
+  be double-counted. Does not aggregate monetary amounts - see
   mv_event_metrics.funding_amount for that.
 
 source: humanoid_robotics.gold.bridge_event_company
@@ -136,7 +139,7 @@ dimensions:
 measures:
   - name: event_company_count
     expr: COUNT(*)
-    comment: 'Row count at the (event, company, role) grain -- NOT a distinct event count. See distinct_event_count.'
+    comment: 'Row count at the (event, company, role) grain - NOT a distinct event count. See distinct_event_count.'
   - name: distinct_event_count
     expr: COUNT(DISTINCT source.event_id)
     comment: 'Number of distinct events, correctly counted once even when an event has multiple linked companies/roles.'

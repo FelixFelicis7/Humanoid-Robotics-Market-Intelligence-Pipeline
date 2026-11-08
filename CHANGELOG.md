@@ -48,6 +48,14 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
   (BR-DATE-06). The old name collided with the real `dim_source.publish_date`.
   Only the `.sql` versions were changed; the original notebooks are reference only.
 
+### Fixed
+- `02_silver_company_alias`: select `alias` and `company_id` explicitly. Bronze had
+  gained `source_file` / `ingested_at`, which broke the overwrite with
+  `DELTA_METADATA_MISMATCH` on the first Job run.
+- `metric_views.sql`: `CREATE VIEW` → `CREATE OR REPLACE VIEW` so the Job can rerun,
+  and removed `;` and `--` from the YAML inside `$$ ... $$`. Job "SQL file" tasks
+  split statements on `;` without respecting `$$` blocks.
+
 ### Known issues (new)
 - Embedding model `databricks-gte-large-en` is English-only; switch to a
   multilingual model before adding Chinese documents.
