@@ -1,0 +1,13 @@
+﻿company_id,company_name,company_name_zh,company_type,country,region,hq_city,founded_year,is_listed,parent_company,website,is_core,verified,notes
+tesla,Tesla,特斯拉,humanoid_maker,US,North America,Austin,2003,Y,,https://www.tesla.com,Y,N,Optimus 是其人形机器人项目
+figure,Figure AI,,humanoid_maker,US,North America,San Jose,2022,N,,https://www.figure.ai,Y,N,
+agility,Agility Robotics,,humanoid_maker,US,North America,Salem (Oregon),2015,N,,https://www.agilityrobotics.com,Y,N,
+apptronik,Apptronik,,humanoid_maker,US,North America,Austin,2016,N,,https://apptronik.com,Y,N,
+unitree,Unitree Robotics,宇树科技,humanoid_maker,CN,Asia,Hangzhou,2016,Y,,https://www.unitree.com,Y,N,2026-08 科创板上市
+ubtech,UBTech,优必选,humanoid_maker,CN,Asia,Shenzhen,2012,Y,,https://www.ubtrobot.com,Y,N,港股 9880
+humanoid_uk,Humanoid,,humanoid_maker,GB,Europe,London,2024,N,,https://thehumanoid.ai,Y,N,与 Schaeffler/Bosch 均有协议
+schaeffler,Schaeffler,舍弗勒,tier1,DE,Europe,Herzogenaurach,1946,Y,,https://www.schaeffler.com,Y,N,
+bosch,Bosch,博世,tier1,DE,Europe,Gerlingen,1886,N,,https://www.bosch.com,Y,N,
+magna,Magna International,麦格纳,tier1,CA,North America,Aurora (Ontario),1957,Y,,https://www.magna.com,Y,N,
+hyundai_mobis,Hyundai Mobis,现代摩比斯,tier1,KR,Asia,Seoul,1977,Y,Hyundai Motor Group,https://www.mobis.com,Y,N,
+boston_dynamics,Boston Dynamics,波士顿动力,humanoid_maker,US,North America,Waltham,1992,N,Hyundai Motor Group,https://bostondynamics.com,N,N,非核心；作为 Mobis 合作方出现

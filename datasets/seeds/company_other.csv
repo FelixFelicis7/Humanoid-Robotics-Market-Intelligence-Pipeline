@@ -1,0 +1,13 @@
+company_id,company_name,company_name_zh,company_type,country,region,hq_city,founded_year,is_listed,parent_company,website,is_core,verified,notes
+align_ventures,Align Ventures,,investor,US,North America,,2018,N,,https://align.vc,N,N,Figure Series C 投资方 (D0002)；HQ 各来源不一致（Miami / New York）
+brookfield_asset_management,Brookfield Asset Management,博枫资产管理,investor,CA,North America,,,Y,,https://www.brookfield.com,N,N,Figure Series C 投资方 (D0002)；HQ 与成立年份待核实
+gxo,GXO,,customer,US,North America,Greenwich,2021,Y,,https://gxo.com,N,N,全称 GXO Logistics；2021 年从 XPO 拆分
+intel_capital,Intel Capital,英特尔投资,investor,US,North America,Santa Clara,1991,N,Intel,https://www.intelcapital.com,N,N,Figure Series C 投资方 (D0002)
+lg_technology_ventures,LG Technology Ventures,,investor,US,North America,Santa Clara,2018,N,LG Corp,https://www.lgtechventures.com,N,N,Figure Series C 投资方 (D0002)
+macquarie_capital,Macquarie Capital,麦格理资本,investor,AU,Oceania,Sydney,,N,Macquarie Group,https://www.macquarie.com,N,N,Figure Series C 投资方 (D0002)；region 新增取值 Oceania
+nvidia,NVIDIA,英伟达,technology_partner,US,North America,Santa Clara,1993,Y,,https://www.nvidia.com,N,N,事件中 role 为 investor
+parkway_venture_capital,Parkway Venture Capital,,investor,US,North America,New York,2019,N,,https://parkway.vc,N,N,Figure Series C 领投方 (D0002)；成立年份来源有 2018/2019
+qualcomm_ventures,Qualcomm Ventures,高通创投,investor,US,North America,San Diego,2000,N,Qualcomm,https://www.qualcommventures.com,N,N,Figure Series C 投资方 (D0002)
+salesforce,Salesforce,赛富时,technology_partner,US,North America,San Francisco,1999,Y,,https://www.salesforce.com,N,N,事件中 role 为 investor
+t_mobile_ventures,T-Mobile Ventures,,investor,US,North America,Bellevue,,N,T-Mobile US,,N,N,Figure Series C 投资方 (D0002)
+tamarack_global,Tamarack Global,,investor,US,North America,Greenwich,2018,N,,,N,N,Figure Series C 投资方 (D0002)；成立年份来源有 2018/2019
