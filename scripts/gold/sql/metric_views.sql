@@ -145,8 +145,8 @@ measures:
     comment: 'Number of distinct events, correctly counted once even when an event has multiple linked companies/roles.'
     display_name: 'Distinct Event Count'
   - name: distinct_company_count
-    expr: COUNT(DISTINCT dim_company.company_id)
-    comment: 'Number of distinct companies in the current slice.'
+    expr: COUNT(DISTINCT CASE WHEN dim_company.company_id <> 'undisclosed' THEN dim_company.company_id END)
+    comment: 'Number of distinct named companies in the current slice. Excludes the undisclosed placeholder used for counterparties the source does not name.'
     display_name: 'Distinct Company Count'
   - name: target_or_issuer_event_count
     expr: COUNT(DISTINCT CASE WHEN role IN ('target', 'issuer') THEN source.event_id END)

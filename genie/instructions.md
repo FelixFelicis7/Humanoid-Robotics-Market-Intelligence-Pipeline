@@ -19,3 +19,4 @@ Full rationale and `BR-*` rule IDs live in [`docs/business_rules.md`](../docs/bu
 - If an answer depends on an exact event date, check whether it was inferred from the document's publish date (flagged on `fct_events`) and say so when it was.
 - Event de-duplication isn't implemented yet — a count like "how many times was this reported" isn't reliable; say so if asked.
 - "Humanoid" as a company name means the UK company (SKL Robotics) — confirm via `evidence_quote` before treating a match as that specific company, since "humanoid" is also an ordinary word.
+- `company_id = 'undisclosed'` is a placeholder for a counterparty the source does not name (e.g. "a well-known domestic enterprise"). Exclude it when counting or listing companies, but you may report it as "customer not disclosed".

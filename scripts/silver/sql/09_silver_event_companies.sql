@@ -1,8 +1,11 @@
 -- =====================================================================
 -- silver.event_companies
 -- Converted from: scripts/silver/09_silver_event_companies.dbquery.ipynb (original kept unchanged)
--- Reads: silver.events_extracted, silver.company
+-- Reads: silver.events_extracted, silver.company, silver.company_alias
 -- Job task: silver_09_event_companies (SQL file)
+-- Name matching (BR-CO-04): an extracted name matches a company when
+-- upper(trim()) equals its company_name OR one of its aliases.
+-- An alias must point to exactly one company (checked in 12, Check 6).
 -- =====================================================================
 
 CREATE OR REPLACE TABLE humanoid_robotics.silver.event_companies AS
@@ -27,8 +30,13 @@ SELECT ed.event_id,
        co.company_name             AS company_name_std,
        co.company_id IS NOT NULL   AS is_matched
 FROM exploded ed
+LEFT JOIN (
+  SELECT upper(trim(company_name)) AS name_key, company_id FROM humanoid_robotics.silver.company
+  UNION
+  SELECT upper(trim(alias)), company_id FROM humanoid_robotics.silver.company_alias
+) k ON k.name_key = upper(ed.company_name_raw)
 LEFT JOIN humanoid_robotics.silver.company co
-       ON upper(trim(co.company_name)) = upper(ed.company_name_raw)
+       ON co.company_id = k.company_id
 
 QUALIFY row_number() OVER (
           PARTITION BY ed.event_id,

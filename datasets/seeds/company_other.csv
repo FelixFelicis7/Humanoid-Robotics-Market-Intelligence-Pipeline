@@ -11,3 +11,27 @@ qualcomm_ventures,Qualcomm Ventures,高通创投,investor,US,North America,San D
 salesforce,Salesforce,赛富时,technology_partner,US,North America,San Francisco,1999,Y,,https://www.salesforce.com,N,N,事件中 role 为 investor
 t_mobile_ventures,T-Mobile Ventures,,investor,US,North America,Bellevue,,N,T-Mobile US,,N,N,Figure Series C 投资方 (D0002)
 tamarack_global,Tamarack Global,,investor,US,North America,Greenwich,2018,N,,,N,N,Figure Series C 投资方 (D0002)；成立年份来源有 2018/2019
+sanctuary_ai,Sanctuary AI,,humanoid_maker,CA,North America,,,N,,,N,N,"Phoenix 人形机器人；Magna 合作 + 股权投资 (D0014, D0015)"
+neura_robotics,NEURA Robotics,,humanoid_maker,DE,Europe,,,N,,,N,N,与 Bosch 技术开发合作 (D0017)
+hexagon_ab,Hexagon AB,,humanoid_maker,SE,Europe,,,Y,,,N,N,AEON 人形机器人，在 BMW Leipzig 测试 (D0012)
+airbus,Airbus,空中客车,customer,FR,Europe,,,Y,,,N,N,采购 UBTech Walker S2 (D0023)；Airbus SE 注册地为荷兰，总部图卢兹
+bmw_group,BMW Group,宝马集团,customer,DE,Europe,,,Y,,,N,N,"部署 Figure 03 (D0011, D0012)"
+mercedes_benz,Mercedes-Benz,梅赛德斯-奔驰,customer,DE,Europe,,,Y,,,N,N,Apptronik 客户，事件中也是投资方 (D0008)
+hyundai_motor_group,Hyundai Motor Group,现代汽车集团,customer,KR,Asia,,,N,,,N,N,Boston Dynamics 与 Hyundai Mobis 的母集团；集团本身不上市（分类为判断）
+at_t_ventures,AT&T Ventures,,investor,US,North America,,,N,AT&T,,N,N,Apptronik Series A-X 投资方 (D0008)
+b_capital,B Capital,,investor,US,North America,,,N,,,N,N,Apptronik Series A 领投 (D0007)
+capital_factory,Capital Factory,,investor,US,North America,,,N,,,N,N,Apptronik Series A 联合领投 (D0007)
+churchill_capital_corp_xi,Churchill Capital Corp XI,,investor,US,North America,,,Y,,,N,N,与 Agility Robotics 合并的 SPAC (D0013)
+peak6,PEAK6,,investor,US,North America,,,N,,,N,N,Apptronik 投资方 (D0008)
+qatar_investment_authority,Qatar Investment Authority,卡塔尔投资局,investor,QA,Middle East,,,N,,,N,N,Apptronik 投资方 (D0008)；region 新增取值 Middle East
+china_petroleum_kunlun_capital,China Petroleum Kunlun Capital,中国石油昆仑资本,investor,CN,Asia,,,N,CNPC,,N,N,宇树 IPO 战略配售 (D0022)
+national_council_for_social_security_fund,National Council for Social Security Fund,全国社会保障基金理事会,investor,CN,Asia,,,N,,,N,N,国家养老基金（社保基金）；宇树 IPO 第一大战略配售投资者 (D0022)
+southern_power_grid_production_and_financing_holding,Southern Power Grid Production and Financing Holding,南方电网产融控股,investor,CN,Asia,,,N,China Southern Power Grid,,N,N,宇树 IPO 战略配售 (D0022)
+tianyi_capital,Tianyi Capital,天翼资本,investor,CN,Asia,,,N,China Telecom,,N,N,宇树 IPO 战略配售 (D0022)
+google,Google,谷歌,technology_partner,US,North America,,,Y,Alphabet,,N,N,"Apptronik 投资方 (D0007, D0008)；与 NVIDIA 同理按公司性质归类"
+google_deepmind,Google DeepMind,,technology_partner,GB,Europe,,,N,Google,,N,N,Apptronik 技术合作方 (D0007)
+jabil,Jabil,捷普,technology_partner,US,North America,,,Y,,,N,N,电子代工制造商，为 Apptronik 制造 Apollo（分类为判断）
+deepseek,DeepSeek,深度求索,other,CN,Asia,,,N,,,N,N,AI 公司；以产业身份参与宇树 IPO 战略配售 (D0022)
+meituan,Meituan,美团,other,CN,Asia,,,Y,,,N,N,宇树第一大外部机构股东 (D0022)
+john_deere,John Deere,约翰迪尔,other,US,North America,,,Y,,,N,N,农机制造商；Apptronik Series A-X 投资方 (D0008)
+undisclosed,Undisclosed,未披露,other,,,,,,,,N,N,Placeholder for counterparties the source does not name (e.g. 国内某知名企业). Exclude from company counts (BR-CO-10)

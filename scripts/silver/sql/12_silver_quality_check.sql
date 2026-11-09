@@ -1,12 +1,13 @@
 -- =====================================================================
 -- Silver quality checks
 -- Converted from: scripts/silver/12_silver_quality_check.dbquery.ipynb (+ checks moved from 05, 06) (original kept unchanged)
--- Reads: silver.company, silver.events_extracted, silver.documents_extractions
+-- Reads: silver.company, silver.company_alias, silver.events_extracted, silver.documents_extractions
 -- Not in the Job: manual checks.
 -- =====================================================================
 
--- Check 1: Companies that appear in events but are missing from silver.company
--- Pass criterion: 0 rows
+-- Check 1: Companies that appear in events but match neither a company_name
+-- nor an alias (same rule as 09)
+-- Pass criterion: 0 rows, apart from names confirmed as not-a-company (ignored list)
 WITH extracted AS (
   SELECT upper(trim(c.name))   AS name_upper,
          max(c.name)           AS name_example,
@@ -21,15 +22,24 @@ WITH extracted AS (
 ),
 
 ignored AS (
+  -- Names reviewed and deliberately left unmatched (see docs/prompt_issues.md)
   SELECT * FROM VALUES
-    ('HUMANOID')          
+    ('HUMANOID'),                                                       -- PI-001
+    ('MINISTRY OF INDUSTRY AND INFORMATION TECHNOLOGY'),                -- PI-008, government body
+    ('STATE-OWNED ASSETS SUPERVISION AND ADMINISTRATION COMMISSION')    -- PI-008, government body
   AS t(name_upper)
+),
+
+name_keys AS (
+  SELECT upper(trim(company_name)) AS name_key FROM humanoid_robotics.silver.company
+  UNION
+  SELECT upper(trim(alias)) FROM humanoid_robotics.silver.company_alias
 )
 SELECT x.*
 FROM extracted x
-LEFT JOIN humanoid_robotics.silver.company co
-       ON upper(trim(co.company_name)) = x.name_upper
-WHERE co.company_id IS NULL
+LEFT JOIN name_keys k
+       ON k.name_key = x.name_upper
+WHERE k.name_key IS NULL
   AND x.name_upper NOT IN (SELECT name_upper FROM ignored)
 ORDER BY x.n_mentions DESC, x.name_upper;
 
@@ -77,3 +87,24 @@ UNION ALL
 SELECT 'relevance',   count(*), max(classified_at) FROM humanoid_robotics.silver.documents_relevance
 UNION ALL
 SELECT 'extractions', count(*), max(extracted_at)  FROM humanoid_robotics.silver.documents_extractions;
+
+-------------------------------------------------------------------
+-- Check 6: Alias table integrity (alias matching is used by 07 and 09)
+-- Pass criterion: both queries return 0 rows.
+-- 6a: a name (company_name or alias) that points to more than one company.
+--     09 would then produce duplicate rows for the same extracted name.
+WITH name_keys AS (
+  SELECT upper(trim(company_name)) AS name_key, company_id FROM humanoid_robotics.silver.company
+  UNION
+  SELECT upper(trim(alias)), company_id FROM humanoid_robotics.silver.company_alias
+)
+SELECT name_key, collect_set(company_id) AS company_ids
+FROM name_keys
+GROUP BY name_key
+HAVING count(DISTINCT company_id) > 1;
+
+-- 6b: an alias whose company_id does not exist in silver.company.
+SELECT a.alias, a.company_id
+FROM humanoid_robotics.silver.company_alias a
+LEFT ANTI JOIN humanoid_robotics.silver.company co
+       ON co.company_id = a.company_id;

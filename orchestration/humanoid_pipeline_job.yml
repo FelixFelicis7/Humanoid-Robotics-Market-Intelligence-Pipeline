@@ -145,6 +145,7 @@ resources:
           depends_on:
             - task_key: silver_06_extraction_parse
             - task_key: silver_01_companies
+            - task_key: silver_02_company_alias
           sql_task:
             file:
               path: /Workspace/Users/christina.liulu77@gmail.com/Humanoid-Robotics-Market-Intelligence-Pipeline/scripts/silver/sql/09_silver_event_companies.sql

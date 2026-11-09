@@ -30,9 +30,38 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 - Test Chinese-language questions against the RAG app once Chinese documents are
   loaded. Switch to a multilingual embedding model only if Chinese questions are to
   be supported, or if translation option B (keep Chinese body text) is adopted.
-- Expand the corpus from 6 to ≥100 documents (≥25% Chinese), loaded in batches.
+- Expand the corpus to ~80–100 documents (≥25% Chinese, ≥8 per focus company), loaded
+  in batches. Batch 1 done (26 documents).
 - Evaluation: RAG question set (hit@k, citation accuracy) and a manually labelled
   30-document set for AI extraction (v1 baseline).
+
+### Added
+- `scripts/ingest/fetch_docs.py` (moved into the repo): downloads web pages and PDFs,
+  keeps the original under `html/` or `pdf/`, uses a hand-downloaded `pdf/<doc_id>.pdf`
+  if present, and appends to `fetch_log.csv` instead of overwriting it.
+- `scripts/ingest/check_fetch_log.py`: read-only check that every manifest document
+  has a txt before upload, and that no txt is missing from the manifest.
+- Data expansion batch 1: D0007–D0026 (20 documents, 6 Chinese, first PDF filing).
+- 24 companies in `company_other.csv` found in batch 1 (investors, customers, three
+  humanoid makers) and the placeholder `undisclosed` for unnamed counterparties (BR-CO-10).
+- `12_silver_quality_check.sql` Check 6: alias integrity (one company per name; every
+  alias points to an existing company).
+
+### Changed
+- Manifest and company seeds moved to `datasets/manifest/` and `datasets/seeds/`;
+  `datasets/raw/` (full text, HTML, PDF) is git-ignored.
+- Alias table enabled (BR-CO-04): `09_silver_event_companies` and `07_company_candidates`
+  match extracted names on `company_name` or an alias. The Job task `silver_09_event_companies`
+  now also depends on `silver_02_company_alias`.
+- `distinct_company_count` excludes the `undisclosed` placeholder.
+- Government bodies are not added to the company table (BR-CO-11); they are on the
+  ignored list of `12` Check 1.
+
+### Known issues
+- `ai_translate` mistranslates some Chinese company names (PI-006); handled with aliases.
+- Long multi-topic filings can be classified as not relevant (PI-005, D0010).
+- `05` builds the prompt with `concat`, which returns NULL if `publish_date` or
+  `primary_company` is NULL. All current rows are filled; fix before batch 2.
 
 ---
 
