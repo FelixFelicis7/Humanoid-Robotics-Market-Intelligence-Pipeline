@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.dim_company
--- Converted from: scripts/gold/04_gold_dim_company.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/04_gold_dim_company.ipynb (original kept in sync)
 -- Reads: silver.company
 -- Job task: gold_dim_company (SQL file)
 -- Was: spark.sql(query) + write.mode("overwrite").saveAsTable(...)

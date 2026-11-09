@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.bridge_event_company
--- Converted from: scripts/gold/06_gold_bridge_event_company.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/06_gold_bridge_event_company.ipynb (original kept in sync)
 -- Reads: silver.event_companies, silver.event_dedup_map
 -- Job task: gold_bridge_event_company (SQL file)
 -- Was: spark.sql(query) + write.mode("overwrite").saveAsTable(...)

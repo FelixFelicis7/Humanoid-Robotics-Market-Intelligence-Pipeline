@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.dim_source
--- Converted from: scripts/gold/03_gold_dim_source.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/03_gold_dim_source.ipynb (original kept in sync)
 -- Reads: silver.documents, silver.document_summaries
 -- Job task: gold_dim_source (SQL file)
 -- Was: spark.sql(query) + write.mode("overwrite").saveAsTable(...)

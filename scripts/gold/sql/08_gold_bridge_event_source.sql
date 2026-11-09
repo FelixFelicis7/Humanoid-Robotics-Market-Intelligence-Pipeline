@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.bridge_event_source
--- Converted from: scripts/gold/08_gold_bridge_event_source.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/08_gold_bridge_event_source.ipynb (original kept in sync)
 -- Reads: silver.event_dedup_map
 -- Job task: gold_bridge_event_source (SQL file)
 -- Was: spark.sql(query) + write.mode("overwrite").saveAsTable(...)

@@ -56,6 +56,9 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 - `distinct_company_count` excludes the `undisclosed` placeholder.
 - Government bodies are not added to the company table (BR-CO-11); they are on the
   ignored list of `12` Check 1.
+- Original notebooks are now kept in sync with the `.sql` files the Job runs
+  (design decision 16). Brought up to date: silver `06`, `07`, `09`, `10`, `11`, `12`,
+  gold `01`, `metric_views.ipynb` (column rename, alias matching, missing checks).
 
 ### Known issues
 - `ai_translate` mistranslates some Chinese company names (PI-006); handled with aliases.

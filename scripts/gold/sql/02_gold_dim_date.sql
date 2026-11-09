@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.dim_date
--- Converted from: scripts/gold/02_gold_dim_date.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/02_gold_dim_date.ipynb (original kept in sync)
 -- Reads: (generated, no source table)
 -- Job task: gold_dim_date (SQL file)
 -- Was: spark.sql(query) + write.mode("overwrite").saveAsTable(...)

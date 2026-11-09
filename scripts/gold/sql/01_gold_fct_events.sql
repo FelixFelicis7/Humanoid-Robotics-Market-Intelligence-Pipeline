@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.fct_events
--- Converted from: scripts/gold/01_gold_fct_events.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/01_gold_fct_events.ipynb (original kept in sync)
 -- Reads: silver.event_dedup_map, silver.events_extracted
 -- Job task: gold_fct_events (SQL file)
 -- =====================================================================

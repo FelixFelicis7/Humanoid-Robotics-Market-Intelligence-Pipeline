@@ -348,3 +348,26 @@ expression exists in two places (SQL in `03a`, PySpark in `03`) and must stay
 identical. Not handled yet: if a source text changes after extraction, the
 document is retranslated but not re-extracted.
 
+## 16. Original notebooks are kept in sync with the `.sql` files
+
+**Context.** When the Job was built, every SQL-only notebook (`.dbquery.ipynb` in
+silver, the gold notebooks, `metric_views.ipynb`) got a `.sql` copy that the Job
+runs, and the originals were kept unchanged "for reference". Later changes went
+into the `.sql` files only, so the originals drifted: the `publish_date` →
+`date_is_publish_date` rename and the alias matching existed only in `.sql`. Running
+the old `07_company_candidates` notebook by mistake gave wrong candidates and
+silently replaced `silver.v_company_candidates` with the old definition.
+
+**Decision.** Keep both versions, and keep them in sync. The `.sql` file is the one
+the Job runs and the one to change first; the same change is then applied to the
+original notebook. The originals may keep extra exploration queries (e.g.
+`select * from ...`). The gold notebooks wrap the same `SELECT` in Python
+(`spark.sql` + `saveAsTable`) instead of `CREATE TABLE AS`; that difference in form
+is accepted as long as the `SELECT` is identical.
+
+**Alternatives.** Delete the originals, since Git history keeps them (one copy, no
+drift, but the notebooks are still useful for interactive exploration in
+Databricks); keep them unchanged as reference (the cause of the drift).
+
+**Consequences.** Every SQL change touches two files. Phase 5 (dbt) replaces both
+with dbt models, which ends the duplication.

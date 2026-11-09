@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Checks on silver.company and silver.event_companies
--- Converted from: scripts/silver/08_silver_company_test.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/08_silver_company_test.dbquery.ipynb (original kept in sync)
 -- Reads: silver.events_extracted, silver.company, silver.event_companies
 -- Not in the Job: manual checks.
 -- =====================================================================

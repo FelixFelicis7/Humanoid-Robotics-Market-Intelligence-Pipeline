@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Silver quality checks
--- Converted from: scripts/silver/12_silver_quality_check.dbquery.ipynb (+ checks moved from 05, 06) (original kept unchanged)
+-- Converted from: scripts/silver/12_silver_quality_check.dbquery.ipynb (+ checks moved from 05, 06) (original kept in sync)
 -- Reads: silver.company, silver.company_alias, silver.events_extracted, silver.documents_extractions
 -- Not in the Job: manual checks.
 -- =====================================================================

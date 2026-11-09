@@ -1,6 +1,6 @@
 -- =====================================================================
 -- gold.dim_technology
--- Converted from: scripts/gold/05_gold_dim_technology.ipynb (original kept unchanged)
+-- Converted from: scripts/gold/05_gold_dim_technology.ipynb (original kept in sync)
 -- Reads: (fixed values)
 -- Job task: gold_dim_technology (SQL file)
 -- Was: spark.sql(query) + write.mode("overwrite").saveAsTable(...)

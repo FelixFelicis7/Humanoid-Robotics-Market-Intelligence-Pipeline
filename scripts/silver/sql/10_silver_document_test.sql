@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Check on silver.documents_clean
--- Converted from: scripts/silver/10_silver_document_test.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/10_silver_document_test.dbquery.ipynb (original kept in sync)
 -- Reads: silver.documents_clean
 -- Not in the Job: manual check. Table name made fully qualified (catalog added).
 -- =====================================================================

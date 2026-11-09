@@ -1,6 +1,6 @@
 -- =====================================================================
 -- silver.v_company_candidates (view) + review query
--- Converted from: scripts/silver/07_company_candidates.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/07_company_candidates.dbquery.ipynb (original kept in sync)
 -- Reads: silver.events_extracted, silver.company, silver.company_alias
 -- Uses the same matching rule as 09 (company_name OR alias), so a name
 -- that already has an alias does not show up as a candidate.

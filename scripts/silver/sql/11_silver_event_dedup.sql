@@ -1,6 +1,6 @@
 -- =====================================================================
 -- silver.event_dedup_map (placeholder: 1 extracted event = 1 event)
--- Converted from: scripts/silver/11_silver_event_dedup.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/11_silver_event_dedup.dbquery.ipynb (original kept in sync)
 -- Reads: silver.events_extracted
 -- Job task: silver_11_event_dedup (SQL file)
 -- =====================================================================

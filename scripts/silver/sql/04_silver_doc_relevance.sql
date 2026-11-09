@@ -1,6 +1,6 @@
 -- =====================================================================
 -- silver.documents_relevance (append-only, ai_classify)
--- Converted from: scripts/silver/04_silver_doc_relevance.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/04_silver_doc_relevance.dbquery.ipynb (original kept in sync)
 -- Reads: silver.documents_clean
 -- Job task: silver_04_doc_relevance (SQL file)
 -- Incremental: only documents not yet classified are sent to ai_classify.

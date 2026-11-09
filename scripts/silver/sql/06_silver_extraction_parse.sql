@@ -1,6 +1,6 @@
 -- =====================================================================
 -- silver.v_extractions_parsed (view), silver.document_summaries, silver.events_extracted
--- Converted from: scripts/silver/06_silver_extraction_parse.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/06_silver_extraction_parse.dbquery.ipynb (original kept in sync)
 -- Reads: silver.documents_extractions, silver.documents
 -- Job task: silver_06_extraction_parse (SQL file)
 -- Pure SQL, no AI calls: safe to rebuild at any time.

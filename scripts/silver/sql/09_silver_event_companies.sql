@@ -1,6 +1,6 @@
 -- =====================================================================
 -- silver.event_companies
--- Converted from: scripts/silver/09_silver_event_companies.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/09_silver_event_companies.dbquery.ipynb (original kept in sync)
 -- Reads: silver.events_extracted, silver.company, silver.company_alias
 -- Job task: silver_09_event_companies (SQL file)
 -- Name matching (BR-CO-04): an extracted name matches a company when

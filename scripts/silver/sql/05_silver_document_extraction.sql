@@ -1,6 +1,6 @@
 -- =====================================================================
 -- silver.documents_extractions (append-only, ai_query, prompt v1)
--- Converted from: scripts/silver/05_silver_document_extraction.dbquery.ipynb (original kept unchanged)
+-- Converted from: scripts/silver/05_silver_document_extraction.dbquery.ipynb (original kept in sync)
 -- Reads: silver.documents_clean, silver.documents, silver.documents_relevance
 -- Job task: silver_05_extraction (SQL file)
 -- NEVER replace this table: it holds paid AI results.
