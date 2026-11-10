@@ -88,6 +88,8 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 ### Known issues
 - `ai_translate` mistranslates some Chinese company names (PI-006); handled with aliases.
 - Long multi-topic filings can be classified as not relevant (PI-005, D0010).
+- Batch 2 documents about general robotics or physical AI (D0039, D0064, D0065, D0070)
+  are excluded by the strict humanoid relevance rule; kept as boundary samples (PI-009).
 
 ---
 
