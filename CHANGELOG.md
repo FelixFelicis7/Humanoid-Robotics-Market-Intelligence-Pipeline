@@ -34,6 +34,12 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
   in batches. Batch 1 done (26 documents).
 - Evaluation: RAG question set (hit@k, citation accuracy) and a manually labelled
   30-document set for AI extraction (v1 baseline).
+- Sync manifest and seeds to the Volume automatically. Bronze reads
+  `manifest.csv` and the seed CSVs from `/Volumes/humanoid_robotics/landing/`, but a
+  Git pull only updates the Git folder, so an edited CSV is silently ignored until it
+  is uploaded by hand (batch 2 first ran on the old 26-row manifest). Options: read
+  the CSVs from the Git folder in bronze, or add a first Job task that copies them
+  from the Git folder to the Volume.
 
 ### Added
 - `scripts/ingest/fetch_docs.py` (moved into the repo): downloads web pages and PDFs,
@@ -42,6 +48,9 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 - `scripts/ingest/check_fetch_log.py`: read-only check that every manifest document
   has a txt before upload, and that no txt is missing from the manifest.
 - Data expansion batch 1: D0007–D0026 (20 documents, 6 Chinese, first PDF filing).
+- Data expansion batch 2: D0027–D0074 (48 documents, 6 Chinese), market-wide: North
+  American, European, Chinese and Korean makers, AI platforms, component suppliers and
+  national policy. 8 companies added to `company_seed.csv`.
 - 24 companies in `company_other.csv` found in batch 1 (investors, customers, three
   humanoid makers) and the placeholder `undisclosed` for unnamed counterparties (BR-CO-10).
 - `12_silver_quality_check.sql` Check 6: alias integrity (one company per name; every
