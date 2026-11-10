@@ -1,7 +1,8 @@
 -- =====================================================================
 -- Silver quality checks
 -- Converted from: scripts/silver/12_silver_quality_check.dbquery.ipynb (+ checks moved from 05, 06) (original kept in sync)
--- Reads: silver.company, silver.company_alias, silver.events_extracted, silver.documents_extractions
+-- Reads: silver.company, silver.company_alias, silver.events_extracted, silver.documents_extractions,
+--        silver.documents_relevance, silver.v_extractions_parsed
 -- Not in the Job: manual checks.
 -- =====================================================================
 
@@ -108,3 +109,26 @@ SELECT a.alias, a.company_id
 FROM humanoid_robotics.silver.company_alias a
 LEFT ANTI JOIN humanoid_robotics.silver.company co
        ON co.company_id = a.company_id;
+
+-------------------------------------------------------------------
+-- Check 7: Silent AI failures (no error message, but no usable result)
+-- Pass criterion: all three queries return 0 rows.
+-- 7a: extraction stored with neither a result nor an error (e.g. NULL prompt).
+--     05 and 06 now ignore these rows, so the document is retried on the next run.
+SELECT doc_id, prompt_version, extracted_at
+FROM humanoid_robotics.silver.documents_extractions
+WHERE ai_error IS NULL AND ai_raw_json IS NULL;
+
+-- 7b: documents whose relevance label is still NULL (no usable label yet).
+--     04 retries them on the next run; a document listed here after a rerun keeps failing.
+SELECT doc_id, count(*) AS n_attempts, max(classified_at) AS last_attempt
+FROM humanoid_robotics.silver.documents_relevance
+GROUP BY doc_id
+HAVING count(relevance_label) = 0;
+
+-- 7c: AI returned text that does not parse as the expected JSON.
+SELECT e.doc_id, e.extracted_at
+FROM humanoid_robotics.silver.documents_extractions e
+JOIN humanoid_robotics.silver.v_extractions_parsed p
+  ON p.doc_id = e.doc_id AND p.extracted_at = e.extracted_at
+WHERE e.ai_raw_json IS NOT NULL AND p.j IS NULL;

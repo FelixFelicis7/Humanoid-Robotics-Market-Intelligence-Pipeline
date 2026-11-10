@@ -60,11 +60,22 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
   (design decision 16). Brought up to date: silver `06`, `07`, `09`, `10`, `11`, `12`,
   gold `01`, `metric_views.ipynb` (column rename, alias matching, missing checks).
 
+### Fixed
+- Silent AI failures could make a document drop out for good, with no error:
+  - `05`: `concat()` returns NULL if any argument is NULL, so a missing `publish_date`,
+    `language` or `primary_company` produced a NULL prompt. These fields now fall back to
+    a default text. Prompts for documents with all fields filled are unchanged, so
+    `prompt_version` stays `v1`.
+  - `05` and `06`: a row with neither `ai_raw_json` nor `ai_error` no longer counts as a
+    successful extraction, so the document is retried.
+  - `04`: a document is skipped only if it already has a non-NULL label, so a failed
+    classification is retried instead of excluding the document permanently.
+- `12_silver_quality_check.sql` Check 7: lists silent failures (empty extractions,
+  documents without a relevance label, unparseable JSON).
+
 ### Known issues
 - `ai_translate` mistranslates some Chinese company names (PI-006); handled with aliases.
 - Long multi-topic filings can be classified as not relevant (PI-005, D0010).
-- `05` builds the prompt with `concat`, which returns NULL if `publish_date` or
-  `primary_company` is NULL. All current rows are filled; fix before batch 2.
 
 ---
 

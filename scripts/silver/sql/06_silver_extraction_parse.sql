@@ -21,6 +21,7 @@ SELECT doc_id, prompt_version, model_name, extracted_at,
                    evidence_quote: STRING>>>') AS j
 FROM humanoid_robotics.silver.documents_extractions
 WHERE ai_error IS NULL
+  AND ai_raw_json IS NOT NULL
   AND prompt_version = 'v1'     
 QUALIFY row_number() OVER (PARTITION BY doc_id ORDER BY extracted_at DESC) = 1;
 

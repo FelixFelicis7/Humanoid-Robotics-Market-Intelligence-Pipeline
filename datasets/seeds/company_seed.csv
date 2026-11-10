@@ -11,3 +11,11 @@ bosch,Bosch,博世,tier1,DE,Europe,Gerlingen,1886,N,,https://www.bosch.com,Y,N,
 magna,Magna International,麦格纳,tier1,CA,North America,Aurora (Ontario),1957,Y,,https://www.magna.com,Y,N,
 hyundai_mobis,Hyundai Mobis,现代摩比斯,tier1,KR,Asia,Seoul,1977,Y,Hyundai Motor Group,https://www.mobis.com,Y,N,
 boston_dynamics,Boston Dynamics,波士顿动力,humanoid_maker,US,North America,Waltham,1992,N,Hyundai Motor Group,https://bostondynamics.com,N,N,非核心；作为 Mobis 合作方出现
+1x_technologies,1X Technologies,,humanoid_maker,US,North America,Palo Alto,2014,N,,https://www.1x.tech,Y,N,Founded in Norway as Halodi Robotics
+agile_robots,Agile Robots,,humanoid_maker,DE,Europe,Munich,2018,N,,https://www.agile-robots.com,Y,N,
+agibot,AgiBot,智元机器人,humanoid_maker,CN,Asia,Shanghai,2023,N,,https://www.agibot.com,Y,N,
+fourier,Fourier,傅利叶,humanoid_maker,CN,Asia,Shanghai,2015,N,,https://www.fftai.com,Y,N,Formerly Fourier Intelligence
+rainbow_robotics,Rainbow Robotics,,humanoid_maker,KR,Asia,Daejeon,2011,Y,Samsung Electronics,https://www.rainbow-robotics.com,Y,N,Samsung is largest shareholder
+samsung,Samsung Electronics,三星电子,other,KR,Asia,Suwon,1969,Y,,https://www.samsung.com,Y,N,
+physical_intelligence,Physical Intelligence,,technology_partner,US,North America,San Francisco,2024,N,,https://www.physicalintelligence.company,Y,N,Robot foundation models
+harmonic_drive,Harmonic Drive Systems,哈默纳科,other,JP,Asia,Tokyo,1970,Y,,https://www.hds.co.jp,Y,N,Strain wave gear supplier

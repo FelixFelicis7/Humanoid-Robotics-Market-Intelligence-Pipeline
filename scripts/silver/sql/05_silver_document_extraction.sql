@@ -5,6 +5,9 @@
 -- Job task: silver_05_extraction (SQL file)
 -- NEVER replace this table: it holds paid AI results.
 -- Incremental: skips doc_id + prompt_version that already have a successful result.
+-- NULL metadata is replaced with a default text in the prompt: concat() returns NULL
+-- if any argument is NULL, and a NULL prompt would be stored as a 'successful' empty
+-- result that is never retried. Non-NULL prompts are unchanged, so prompt_version stays v1.
 -- Check queries moved to sql/12_silver_quality_check.sql.
 -- =====================================================================
 
@@ -40,9 +43,9 @@ FROM (
              '- Company names: standard English name in name; original-script name in name_original.\n',
              '- evidence_quote: copy one sentence from the text verbatim. Do not translate it.\n',
              '- summary_en: 2-3 sentences in English, even if the text is Chinese.\n',
-             '\n[publish_date] ', cast(m.publish_date AS STRING),
-             '\n[language] ', d.language,
-             '\n[primary_company] ', m.primary_company,
+             '\n[publish_date] ', coalesce(cast(m.publish_date AS STRING), 'unknown'),
+             '\n[language] ', coalesce(d.language, 'unknown'),
+             '\n[primary_company] ', coalesce(m.primary_company, 'none'),
              '\n\n[text]\n', d.clean_text
            ),
            responseFormat => '{
@@ -112,6 +115,7 @@ FROM (
     AND NOT EXISTS (SELECT 1 FROM humanoid_robotics.silver.documents_extractions e
                     WHERE e.doc_id = d.doc_id
                       AND e.prompt_version = 'v1'
-                      AND e.ai_error IS NULL)
+                      AND e.ai_error IS NULL
+                      AND e.ai_raw_json IS NOT NULL)
 
 ) t;
