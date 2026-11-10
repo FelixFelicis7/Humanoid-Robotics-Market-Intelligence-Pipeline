@@ -35,3 +35,41 @@ deepseek,DeepSeek,深度求索,other,CN,Asia,,,N,,,N,N,AI 公司；以产业身�
 meituan,Meituan,美团,other,CN,Asia,,,Y,,,N,N,宇树第一大外部机构股东 (D0022)
 john_deere,John Deere,约翰迪尔,other,US,North America,,,Y,,,N,N,农机制造商；Apptronik Series A-X 投资方 (D0008)
 undisclosed,Undisclosed,未披露,other,,,,,,,,N,N,Placeholder for counterparties the source does not name (e.g. 国内某知名企业). Exclude from company counts (BR-CO-10)
+agco,AGCO,,customer,US,North America,Duluth,1990,Y,,https://www.agcocorp.com,N,N,batch 2
+audi,Audi,奥迪,customer,DE,Europe,Ingolstadt,1909,N,Volkswagen Group,https://www.audi.com,N,N,batch 2; Agile Robots logistics pilot (D0047)
+aeirobot,AeiRobot,,humanoid_maker,KR,Asia,,,N,,,N,N,batch 2; ALICE humanoid; GR00T early adopter (D0061)
+aglae_ventures,Aglaé Ventures,,investor,FR,Europe,Paris,,N,,,N,N,batch 2
+amazon,Amazon,亚马逊,other,US,North America,Seattle,1994,Y,,https://www.amazon.com,N,N,batch 2; role varies by event (investor or customer)
+angel_robotics,Angel Robotics,,other,KR,Asia,Seoul,2017,Y,,,N,N,batch 2; wearable robots
+chimelong_group,Chimelong Group,长隆集团,customer,CN,Asia,Guangzhou,,N,,,N,N,batch 2; AgiBot deployment (D0051)
+cisco,Cisco,思科,technology_partner,US,North America,San Jose,1984,Y,,https://www.cisco.com,N,N,"batch 2; NVIDIA RTX PRO server maker (D0061), low relevance"
+dassault_systemes,Dassault Systèmes,达索系统,technology_partner,FR,Europe,Vélizy-Villacoublay,1981,Y,,https://www.3ds.com,N,N,batch 2
+dell_technologies,Dell Technologies,戴尔科技,technology_partner,US,North America,Round Rock,1984,Y,,https://www.dell.com,N,N,"batch 2; NVIDIA RTX PRO server maker (D0061), low relevance"
+disney_research,Disney Research,迪士尼研究院,technology_partner,US,North America,,,N,The Walt Disney Company,,N,N,batch 2
+eqt,EQT,,investor,SE,Europe,Stockholm,1994,Y,,https://eqtgroup.com,N,N,batch 2; 1X deployment deal (D0041)
+european_investment_bank,European Investment Bank,欧洲投资银行,investor,LU,Europe,Luxembourg,1958,N,,https://www.eib.org,N,N,"batch 2; EU public bank acting as investor, not a government body"
+foxconn,Foxconn,富士康,technology_partner,TW,Asia,New Taipei,1974,Y,,https://www.foxconn.com,N,N,batch 2
+foxlink,Foxlink,正崴,technology_partner,TW,Asia,New Taipei,,Y,,,N,N,batch 2
+fubon_financial_holding_venture_capital,Fubon Financial Holding Venture Capital,富邦金控创投,investor,TW,Asia,Taipei,,N,,,N,N,batch 2
+galbot,Galbot,银河通用,humanoid_maker,CN,Asia,Beijing,2023,N,,,N,N,batch 2
+general_robotics,General Robotics,,technology_partner,US,North America,,,N,,,N,N,batch 2; robot intelligence platform (D0061)
+hewlett_packard_enterprise,Hewlett Packard Enterprise,慧与,technology_partner,US,North America,,2015,Y,,https://www.hpe.com,N,N,"batch 2; NVIDIA RTX PRO server maker (D0061), low relevance"
+interalpen_partners,InterAlpen Partners,,investor,,,,,N,,,N,N,batch 2; country to verify
+lenovo,Lenovo,联想,technology_partner,CN,Asia,Beijing,1984,Y,,https://www.lenovo.com,N,N,"batch 2; NVIDIA RTX PRO workstation maker (D0061), low relevance"
+lightwheel,Lightwheel,光轮智能,technology_partner,,,,,N,,,N,N,batch 2; simulation data; country to verify
+lingotto_horizon,Lingotto Horizon,,investor,,,,,N,,,N,N,batch 2; country to verify
+longcheer_technology,Longcheer Technology,龙旗科技,technology_partner,CN,Asia,Shanghai,,Y,,,N,N,batch 2
+mentee_robotics,Mentee Robotics,,humanoid_maker,IL,Middle East,,2022,N,,,N,N,batch 2
+mercado_libre,Mercado Libre,,customer,UY,Latin America,Montevideo,1999,Y,,https://www.mercadolibre.com,N,N,batch 2; Agility Digit customer
+neuromeka,Neuromeka,,other,KR,Asia,,,Y,,,N,N,batch 2; cobot maker
+pilatus,Pilatus,,customer,CH,Europe,Stans,1939,N,,https://www.pilatus-aircraft.com,N,N,batch 2; AEON pilot (D0043)
+prime_movers_lab,Prime Movers Lab,,investor,US,North America,,,N,,,N,N,batch 2
+qualcomm,Qualcomm,高通,technology_partner,US,North America,San Diego,1985,Y,,https://www.qualcomm.com,N,N,batch 2; separate from qualcomm_ventures
+siasun_robot_automation,Siasun Robot & Automation,新松机器人,other,CN,Asia,Shenyang,2000,Y,,,N,N,batch 2; industrial robots (D0051)
+siemens,Siemens,西门子,customer,DE,Europe,Munich,1847,Y,,https://www.siemens.com,N,N,batch 2; Humanoid PoC (D0049)
+skild_ai,Skild AI,,technology_partner,US,North America,Pittsburgh,2023,N,,,N,N,batch 2; robot foundation models
+supermicro,Supermicro,超微电脑,technology_partner,US,North America,San Jose,1993,Y,,https://www.supermicro.com,N,N,"batch 2; NVIDIA RTX PRO server maker (D0061), low relevance"
+tether,Tether,,investor,,,,,N,,,N,N,batch 2; country to verify
+toyota,Toyota,丰田,customer,JP,Asia,Toyota City,1937,Y,,https://global.toyota,N,N,batch 2; Agility Digit at TMMC (D0035)
+xpeng_robotics,XPENG Robotics,小鹏机器人,humanoid_maker,CN,Asia,Guangzhou,,N,XPENG,,N,N,batch 2
+imec_xpand,imec.xpand,,investor,BE,Europe,Leuven,,N,,,N,N,batch 2

@@ -27,7 +27,9 @@ ignored AS (
   SELECT * FROM VALUES
     ('HUMANOID'),                                                       -- PI-001
     ('MINISTRY OF INDUSTRY AND INFORMATION TECHNOLOGY'),                -- PI-008, government body
-    ('STATE-OWNED ASSETS SUPERVISION AND ADMINISTRATION COMMISSION')    -- PI-008, government body
+    ('STATE-OWNED ASSETS SUPERVISION AND ADMINISTRATION COMMISSION'),   -- PI-008, government body
+    ('MINISTRY OF TRADE, INDUSTRY AND ENERGY'),                         -- BR-CO-11, government body (KR)
+    ('UNITED STATES CONGRESS')                                          -- BR-CO-11, government body (US)
   AS t(name_upper)
 ),
 

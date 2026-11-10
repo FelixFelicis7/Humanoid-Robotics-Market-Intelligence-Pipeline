@@ -51,6 +51,9 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
 - Data expansion batch 2: D0027–D0074 (48 documents, 6 Chinese), market-wide: North
   American, European, Chinese and Korean makers, AI platforms, component suppliers and
   national policy. 8 companies added to `company_seed.csv`.
+- 38 companies in `company_other.csv` and 8 aliases found in batch 2 (07 review).
+  Two more government bodies (MOTIE, United States Congress) are on the ignored list
+  of `12` Check 1 (BR-CO-11).
 - 24 companies in `company_other.csv` found in batch 1 (investors, customers, three
   humanoid makers) and the placeholder `undisclosed` for unnamed counterparties (BR-CO-10).
 - `12_silver_quality_check.sql` Check 6: alias integrity (one company per name; every
