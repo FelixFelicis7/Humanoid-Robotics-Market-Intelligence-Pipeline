@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  # Silver tables that are still built by the Databricks Job, not by dbt.
+  # Remove a table from this list once its model is migrated into dbt,
+  # and switch its downstream models from source() to ref().
+  - name: silver_legacy
+    database: humanoid_robotics   # catalog
+    schema: silver
+    tables:
+      - name: documents
+      - name: document_summaries
+      - name: company
+      - name: events_extracted
+      - name: event_companies
+      - name: event_dedup_map

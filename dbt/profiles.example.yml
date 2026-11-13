@@ -1,0 +1,21 @@
+# Copy this file to ~/.dbt/profiles.yml (it is NOT read from the project folder).
+# auth_type: oauth opens a browser to sign in; no token is stored in this file.
+humanoid:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      host: dbc-75921b75-390b.cloud.databricks.com
+      http_path: /sql/1.0/warehouses/22edfdc6f695ff64
+      catalog: humanoid_robotics
+      schema: dev            # -> dev_gold, dev_silver
+      auth_type: oauth
+      threads: 4
+    prod:
+      type: databricks
+      host: dbc-75921b75-390b.cloud.databricks.com
+      http_path: /sql/1.0/warehouses/22edfdc6f695ff64
+      catalog: humanoid_robotics
+      schema: prod           # macro maps prod to gold / silver (no prefix)
+      auth_type: oauth
+      threads: 4

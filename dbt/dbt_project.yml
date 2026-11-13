@@ -1,0 +1,26 @@
+# dbt project for the humanoid robotics market intelligence pipeline.
+# Scope (stage 1): gold.dim_source only. Silver tables are still built by the
+# Databricks Job and are read here as sources (see models/sources.yml).
+
+name: humanoid
+version: "0.1.0"
+config-version: 2
+profile: humanoid            # connection settings in ~/.dbt/profiles.yml
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  humanoid:
+    # Write table and column descriptions from schema.yml to Unity Catalog
+    # (replaces scripts/gold/sql/comments.sql once all gold tables are migrated).
+    +persist_docs:
+      relation: true
+      columns: true
+    gold:
+      +schema: gold          # prod: gold, dev: dev_gold (see macros/generate_schema_name.sql)
+      +materialized: table
