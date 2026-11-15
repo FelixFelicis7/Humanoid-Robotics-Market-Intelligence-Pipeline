@@ -1,0 +1,46 @@
+version: 2
+
+sources:
+  # Silver tables that are still built by the Databricks Job, not by dbt:
+  # PySpark notebooks (01, 02, 03). The translation step 03a also stays in the Job,
+  # because notebook 03 reads its output (dbt -> notebook -> dbt is not possible).
+  # Remove a table from this list once its model is migrated into dbt,
+  # and switch its downstream models from source() to ref().
+  # dbt can test sources too: these tests replace part of 12_silver_quality_check.
+  - name: silver_legacy
+    database: humanoid_robotics   # catalog
+    schema: silver
+    tables:
+      - name: documents
+        description: "One row per document: manifest joined with raw text (03_silver_documents, PySpark)."
+        columns:
+          - name: doc_id
+            data_tests: [unique, not_null]
+
+      - name: documents_clean
+        description: >-
+          Cleaned document text used by the AI steps (03_silver_documents with
+          src_text_cleaning, PySpark).
+        columns:
+          - name: doc_id
+            data_tests: [unique, not_null]
+
+      - name: company
+        description: "Company master data from the seed CSVs (01_silver_companies, PySpark)."
+        columns:
+          - name: company_id
+            # was 12 check 2 (null_ids = 0, distinct_ids = total_rows)
+            data_tests: [unique, not_null]
+          - name: company_name
+            data_tests: [not_null]
+
+      - name: company_alias
+        description: "Alias -> company_id mapping (02_silver_company_alias, PySpark)."
+        columns:
+          - name: company_id
+            data_tests:
+              # was 12 check 6b: every alias points to an existing company
+              - relationships:
+                  arguments:
+                    to: source('silver_legacy', 'company')
+                    field: company_id

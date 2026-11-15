@@ -1,0 +1,53 @@
+# dbt CI: on every pull request to main, build all models and run all tests in
+# the ci_silver / ci_gold schemas. Runs on every PR (no paths filter), because
+# dbt-build is a required status check on main: a required check that never
+# runs would block docs-only PRs. Changes outside dbt/ (seeds, scripts) can
+# also affect the dbt tests.
+#
+# AI cost control:
+#   1. clone_ai_tables_from_prod: the AI tables in ci_silver start as SHALLOW
+#      CLONEs of prod, so documents that prod already processed are not sent
+#      to the AI again (no-op if the clones already exist).
+#   2. sample_only: if a PR changes the prompt (new prompt_version), at most
+#      5 documents per run are sent to the AI.
+name: dbt CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}          # manual run from the Actions tab
+
+concurrency:
+  group: dbt-ci                  # one run at a time: all PRs share the ci schemas
+  cancel-in-progress: false
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt/ci
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    defaults:
+      run:
+        working-directory: dbt
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt (same versions as uv.lock)
+        run: pip install "dbt-core==1.12.6" "dbt-databricks==1.13.0"
+
+      - name: Check the connection
+        run: dbt debug
+
+      - name: Clone prod AI tables into ci_silver (no AI calls)
+        run: dbt run-operation clone_ai_tables_from_prod
+
+      - name: Build models and run tests
+        run: "dbt build --vars '{sample_only: true}'"

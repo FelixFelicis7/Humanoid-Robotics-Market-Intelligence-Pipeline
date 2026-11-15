@@ -1,0 +1,33 @@
+# dbt project for the humanoid robotics market intelligence pipeline.
+# Scope: gold (8 tables) and the silver steps without AI calls (06, 07, 09, 11).
+# Silver tables still built by the Databricks Job (bronze-to-silver notebooks and
+# the AI steps 03a, 04, 05) are read as sources (see models/sources.yml).
+
+name: humanoid
+version: "0.1.0"
+config-version: 2
+profile: humanoid            # connection settings in ~/.dbt/profiles.yml
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  prompt_version: v1         # AI extraction prompt version read by silver (was hard-coded in 05/06)
+
+models:
+  humanoid:
+    # Write table and column descriptions from schema.yml to Unity Catalog
+    # (replaces scripts/gold/sql/comments.sql once all gold tables are migrated).
+    +persist_docs:
+      relation: true
+      columns: true
+    silver:
+      +schema: silver        # prod: silver, dev: dev_silver
+      +materialized: table   # views set materialized='view' in their own file
+    gold:
+      +schema: gold          # prod: gold, dev: dev_gold (see macros/generate_schema_name.sql)
+      +materialized: table

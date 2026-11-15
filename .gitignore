@@ -7,3 +7,13 @@ __pycache__/
 
 # Raw source documents (full text, HTML, PDF) stay local, never in GitHub
 datasets/raw/
+
+# Local Databricks CLI exports (job run logs), not for GitHub
+runs*.json
+run_*.json
+
+# dbt build output and local state
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/

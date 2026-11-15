@@ -1,0 +1,106 @@
+version: 2
+
+# Silver models without AI calls (06, 07, 09, 11).
+# Tests replace part of scripts/silver/sql/12_silver_quality_check.sql and 08.
+# Note: in dbt build, a FAILED test on a model skips all its downstream models.
+# Review-type checks therefore use severity warn.
+
+models:
+  # ---------------------------------------------------------------- AI steps
+  - name: documents_relevance
+    description: >-
+      Append-only ai_classify results (04): one row per attempt. Never rebuilt
+      from scratch (full_refresh=false). A NULL label is retried on the next run.
+    columns:
+      - name: doc_id
+        data_tests: [not_null]
+
+  - name: documents_extractions
+    description: >-
+      Append-only ai_query extraction results (05): one row per attempt. Never
+      rebuilt from scratch (full_refresh=false). Failed attempts are retried.
+    columns:
+      - name: doc_id
+        data_tests: [not_null]
+      - name: prompt_version
+        data_tests: [not_null]
+
+  # ---------------------------------------------------------------- parsing (06)
+  - name: v_extractions_parsed
+    description: >-
+      View: latest successful AI extraction per document for the current
+      prompt_version, with the JSON parsed into a struct (j).
+    columns:
+      - name: doc_id
+        data_tests: [unique, not_null]
+      - name: j
+        description: "Parsed extraction result. NULL when the AI output is not valid JSON for the schema."
+        data_tests:
+          # was 12 check 7c: AI returned text that does not parse
+          - not_null:
+              config:
+                severity: warn
+
+  - name: document_summaries
+    description: "One row per extracted document: English summary and number of events."
+    columns:
+      - name: doc_id
+        data_tests: [unique, not_null]
+      - name: event_count
+        data_tests: [not_null]
+
+  - name: events_extracted
+    description: >-
+      One row per event extracted from one document, before de-duplication.
+      event_id here is the extracted event ID, e.g. D0001_E01 (BR-EVT-05).
+    columns:
+      - name: event_id
+        data_tests: [unique, not_null]
+      - name: doc_id
+        data_tests: [not_null]
+      - name: event_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['funding', 'partnership', 'product_launch', 'production_plan', 'policy', 'other']
+
+  - name: event_companies
+    description: >-
+      One row per event x company x role. company_id is NULL when the
+      extracted name matches neither a company_name nor an alias.
+    data_tests:
+      # same partition as the QUALIFY in the model (BR-ROLE-02)
+      - unique_key_combination:
+          arguments:
+            columns: ['event_id', 'coalesce(company_id, upper(company_name_raw))', 'role']
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('events_extracted')
+                field: event_id
+      - name: role
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['investor', 'target', 'partner', 'customer', 'supplier', 'issuer']
+              config:
+                severity: warn
+
+  - name: event_dedup_map
+    description: >-
+      Extracted event -> de-duplicated event. Placeholder v0: one extracted
+      event = one event, n_sources = 1 (BR-EVT-06 planned).
+    columns:
+      - name: extracted_event_id
+        data_tests: [unique, not_null]
+      - name: event_id
+        data_tests: [not_null]
+
+  - name: v_company_candidates
+    description: >-
+      View: extracted company names that match neither a company_name nor an
+      alias. Review after each batch and add them to the seeds or aliases (BR-CO-05).
