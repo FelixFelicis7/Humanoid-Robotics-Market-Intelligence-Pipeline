@@ -4,7 +4,7 @@ resources:
       name: humanoid robotics dwh pipeline (bundle)
       description: "End-to-end pipeline: bronze → silver (translation) → dbt
         (silver AI extraction + gold star schema + tests) → metric views + RAG
-        vector index. Run after uploading new documents."
+        vector index. Run after uploading new documents. Deployed via CD."
       email_notifications:
         on_failure:
           - ${var.notify_email}
