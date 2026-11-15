@@ -1,0 +1,23 @@
+# dbt profiles for deployed Databricks jobs (Asset Bundles).
+# Local development uses ~/.dbt/profiles.yml instead.
+# Host and token are injected by Databricks at runtime (DBT_HOST / DBT_ACCESS_TOKEN).
+humanoid:            # ← 改成 dbt_project.yml 里的 profile 名
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      method: http
+      catalog: humanoid_robotics
+      schema: dev
+      http_path: /sql/1.0/warehouses/22edfdc6f695ff64
+      host: "{{ env_var('DBT_HOST') }}"
+      token: "{{ env_var('DBT_ACCESS_TOKEN') }}"
+
+    prod:
+      type: databricks
+      method: http
+      catalog: humanoid_robotics
+      schema: prod
+      http_path: /sql/1.0/warehouses/22edfdc6f695ff64
+      host: "{{ env_var('DBT_HOST') }}"
+      token: "{{ env_var('DBT_ACCESS_TOKEN') }}"

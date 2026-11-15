@@ -1,0 +1,22 @@
+bundle:
+  name: humanoid_market_intel
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    default: humanoid_robotics
+  warehouse_id:
+    default: 22edfdc6f695ff64
+  notify_email:
+    description: Email for job failure notifications, passed in via the BUNDLE_VAR_notify_email environment variable
+
+targets:
+  dev:
+    mode: development
+    default: true
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/prod
