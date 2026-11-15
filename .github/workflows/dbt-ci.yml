@@ -1,5 +1,8 @@
-# dbt CI: on every pull request to main that changes the dbt project, build all
-# models and run all tests in the ci_silver / ci_gold schemas.
+# dbt CI: on every pull request to main, build all models and run all tests in
+# the ci_silver / ci_gold schemas. Runs on every PR (no paths filter), because
+# dbt-build is a required status check on main: a required check that never
+# runs would block docs-only PRs. Changes outside dbt/ (seeds, scripts) can
+# also affect the dbt tests.
 #
 # AI cost control:
 #   1. clone_ai_tables_from_prod: the AI tables in ci_silver start as SHALLOW
@@ -12,9 +15,6 @@ name: dbt CI
 on:
   pull_request:
     branches: [main]
-    paths:
-      - "dbt/**"
-      - ".github/workflows/dbt-ci.yml"
   workflow_dispatch: {}          # manual run from the Actions tab
 
 concurrency:
