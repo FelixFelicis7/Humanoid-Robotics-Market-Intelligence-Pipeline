@@ -49,18 +49,43 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
   `dim_technology` (hard-coded VALUES) can become a seed at the same time. The
   manifest can follow later; it is also read by `bronze_documents` and
   `03_silver_documents`. Deferred: low priority compared with the AI steps and CI.
-- dbt migration (Phase 5), on branch `feat/dbt-init`:
+- dbt migration (Phase 5):
   - [x] gold layer (8 tables): descriptions, PK/FK post-hooks and tests replace
     `comments.sql`, `99_gold_constraints.sql` and `09_gold_bridge_table_quality_checks`.
   - [x] silver steps without AI calls (06, 07, 09, 11); checks from `08` / `12` as tests.
-  - [ ] AI steps (04 relevance, 05 extraction) as incremental models with
+  - [x] AI steps (04 relevance, 05 extraction) as incremental models with
     `full_refresh=false`; dev tables seeded with `SHALLOW CLONE` from prod.
   - [ ] seeds for the company lists (see the item above).
-  - [ ] metric views: keep as a Job task after dbt, or move into dbt.
-  - [ ] Job: replace the silver/gold SQL tasks with one dbt task (Asset Bundle).
-  - [ ] CI (GitHub Actions on pull requests) and CD (bundle deploy on merge to main).
+  - [ ] metric views: kept as a Job task after `dbt_build` for now; may move into dbt.
+  - [x] Job: replace the silver/gold SQL tasks with one dbt task (Asset Bundle, PR #7).
+  - [x] CI (GitHub Actions on pull requests, PR #6) and CD (bundle deploy on merge
+    to main, PR #7; verified end to end with PR #8).
+- Clean-up after about one week of stable runs of the bundle job: delete the old UI
+  job, the backup tables `silver.documents_extractions_bak_20261115` and
+  `silver.documents_relevance_bak_20261115`, and the `.sql` files in
+  `scripts/silver/sql/` and `scripts/gold/sql/` that dbt replaced (keep `03a` and
+  `metric_views.sql`, which the Job still runs).
 
 ### Added
+- Databricks Asset Bundle: `databricks.yml` (targets `dev` and `prod`) and
+  `resources/humanoid_pipeline.job.yml`. New Job `humanoid robotics dwh pipeline (bundle)`
+  with 11 tasks: bronze ×3 → silver 01 / 02 / 03a / 03 → `dbt_build` → metric views,
+  `13_silver_doc_chunks` → vector index. The single `dbt_build` task (`dbt deps` +
+  `dbt build --target=<bundle target>`) replaces 15 SQL tasks (silver 04, 05, 06, 09,
+  11; gold 01–08, constraints, comments). Because it includes the AI models, it has no
+  retries, a 45-minute timeout and serverless auto-optimization turned off.
+  The workspace host is not in the repo: it comes from the local CLI profile or the
+  `DATABRICKS_HOST` secret. The notification e-mail is passed in through
+  `BUNDLE_VAR_notify_email`.
+- `dbt/dbt_profiles/profiles.yml`: dbt profile for the Job's dbt task (`dev` / `prod`
+  targets, same schemas as the local profile). Host and token are injected by
+  Databricks at run time (`DBT_HOST`, `DBT_ACCESS_TOKEN`).
+- CD: `.github/workflows/cd.yml` validates and deploys the bundle to `prod` on every
+  merge to `main`. It deploys only and does not run the Job, so a merge never
+  triggers AI calls.
+- First prod run of the bundle Job: 11/11 tasks succeeded; dbt PASS=89 WARN=1
+  (PI-010) ERROR=0; row counts of the two AI tables unchanged compared with
+  `DEEP CLONE` backups taken before the switch.
 - `scripts/ingest/fetch_docs.py` (moved into the repo): downloads web pages and PDFs,
   keeps the original under `html/` or `pdf/`, uses a hand-downloaded `pdf/<doc_id>.pdf`
   if present, and appends to `fetch_log.csv` instead of overwriting it.
@@ -79,6 +104,12 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
   alias points to an existing company).
 
 ### Changed
+- Job definition moved from `orchestration/humanoid_pipeline_job.yml` to
+  `resources/humanoid_pipeline.job.yml`. Paths are now relative to the repo, so the
+  Job runs the files uploaded by the bundle instead of the Databricks Git folder.
+  The Job is no longer edited in the UI; changes go through a pull request.
+- The old UI Job `humanoid robotics dwh pipeline` is kept, marked DEPRECATED, for
+  rollback only. It must not run alongside the bundle Job (both write the same tables).
 - Manifest and company seeds moved to `datasets/manifest/` and `datasets/seeds/`;
   `datasets/raw/` (full text, HTML, PDF) is git-ignored.
 - Alias table enabled (BR-CO-04): `09_silver_event_companies` and `07_company_candidates`
