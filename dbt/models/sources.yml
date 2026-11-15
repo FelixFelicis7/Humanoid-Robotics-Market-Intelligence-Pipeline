@@ -2,7 +2,8 @@ version: 2
 
 sources:
   # Silver tables that are still built by the Databricks Job, not by dbt:
-  # PySpark notebooks (01, 02, 03) and the AI steps (03a, 04, 05).
+  # PySpark notebooks (01, 02, 03). The translation step 03a also stays in the Job,
+  # because notebook 03 reads its output (dbt -> notebook -> dbt is not possible).
   # Remove a table from this list once its model is migrated into dbt,
   # and switch its downstream models from source() to ref().
   # dbt can test sources too: these tests replace part of 12_silver_quality_check.
@@ -16,10 +17,13 @@ sources:
           - name: doc_id
             data_tests: [unique, not_null]
 
-      - name: documents_extractions
+      - name: documents_clean
         description: >-
-          Append-only AI extraction results (05, ai_query). One row per attempt;
-          never replaced, because it holds paid AI results.
+          Cleaned document text used by the AI steps (03_silver_documents with
+          src_text_cleaning, PySpark).
+        columns:
+          - name: doc_id
+            data_tests: [unique, not_null]
 
       - name: company
         description: "Company master data from the seed CSVs (01_silver_companies, PySpark)."

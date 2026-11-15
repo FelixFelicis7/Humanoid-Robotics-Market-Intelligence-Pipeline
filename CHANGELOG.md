@@ -40,6 +40,25 @@ recorded here, but it does not bump `chunking_version`, because the chunk text a
   is uploaded by hand (batch 2 first ran on the old 26-row manifest). Options: read
   the CSVs from the Git folder in bronze, or add a first Job task that copies them
   from the Git folder to the Volume.
+  Preferred option since the dbt migration: **dbt seeds** for `company_seed.csv`,
+  `company_other.csv` and `company_alias.csv` (all columns as STRING, same rule as
+  bronze), with `models/silver/company.sql` and `company_alias.sql` replacing the
+  PySpark notebooks `01_silver_companies` and `02_silver_company_alias` (trim, lower,
+  Y/N to boolean, `founded_year` to int). Removes the manual Volume upload and three
+  Job tasks, lets CSV changes be tested in dev and in CI before they reach prod.
+  `dim_technology` (hard-coded VALUES) can become a seed at the same time. The
+  manifest can follow later; it is also read by `bronze_documents` and
+  `03_silver_documents`. Deferred: low priority compared with the AI steps and CI.
+- dbt migration (Phase 5), on branch `feat/dbt-init`:
+  - [x] gold layer (8 tables): descriptions, PK/FK post-hooks and tests replace
+    `comments.sql`, `99_gold_constraints.sql` and `09_gold_bridge_table_quality_checks`.
+  - [x] silver steps without AI calls (06, 07, 09, 11); checks from `08` / `12` as tests.
+  - [ ] AI steps (04 relevance, 05 extraction) as incremental models with
+    `full_refresh=false`; dev tables seeded with `SHALLOW CLONE` from prod.
+  - [ ] seeds for the company lists (see the item above).
+  - [ ] metric views: keep as a Job task after dbt, or move into dbt.
+  - [ ] Job: replace the silver/gold SQL tasks with one dbt task (Asset Bundle).
+  - [ ] CI (GitHub Actions on pull requests) and CD (bundle deploy on merge to main).
 
 ### Added
 - `scripts/ingest/fetch_docs.py` (moved into the repo): downloads web pages and PDFs,

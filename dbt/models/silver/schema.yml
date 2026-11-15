@@ -6,6 +6,26 @@ version: 2
 # Review-type checks therefore use severity warn.
 
 models:
+  # ---------------------------------------------------------------- AI steps
+  - name: documents_relevance
+    description: >-
+      Append-only ai_classify results (04): one row per attempt. Never rebuilt
+      from scratch (full_refresh=false). A NULL label is retried on the next run.
+    columns:
+      - name: doc_id
+        data_tests: [not_null]
+
+  - name: documents_extractions
+    description: >-
+      Append-only ai_query extraction results (05): one row per attempt. Never
+      rebuilt from scratch (full_refresh=false). Failed attempts are retried.
+    columns:
+      - name: doc_id
+        data_tests: [not_null]
+      - name: prompt_version
+        data_tests: [not_null]
+
+  # ---------------------------------------------------------------- parsing (06)
   - name: v_extractions_parsed
     description: >-
       View: latest successful AI extraction per document for the current

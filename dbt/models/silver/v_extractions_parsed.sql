@@ -14,7 +14,7 @@ SELECT doc_id, prompt_version, model_name, extracted_at,
                    amount: DOUBLE, currency: STRING,
                    quantity: DOUBLE, quantity_unit: STRING,
                    evidence_quote: STRING>>>') AS j
-FROM {{ source('silver_legacy', 'documents_extractions') }}
+FROM {{ ref('documents_extractions') }}
 WHERE ai_error IS NULL
   AND ai_raw_json IS NOT NULL
   AND prompt_version = '{{ var("prompt_version") }}'
