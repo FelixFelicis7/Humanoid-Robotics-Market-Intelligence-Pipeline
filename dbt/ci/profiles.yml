@@ -1,0 +1,15 @@
+# dbt connection for GitHub Actions (CI). Safe to commit: it holds no secret.
+# The token comes from the environment variable DATABRICKS_TOKEN, which the
+# workflow fills from the GitHub secret of the same name.
+# Target "ci" writes to ci_silver / ci_gold (macros/generate_schema_name.sql).
+humanoid:
+  target: ci
+  outputs:
+    ci:
+      type: databricks
+      host: dbc-75921b75-390b.cloud.databricks.com
+      http_path: /sql/1.0/warehouses/22edfdc6f695ff64
+      catalog: humanoid_robotics
+      schema: ci
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 4
