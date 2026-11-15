@@ -14,5 +14,5 @@ SELECT
   s.summary_en,
   coalesce(s.event_count, 0) AS event_count
 FROM {{ source('silver_legacy', 'documents') }} d
-LEFT JOIN {{ source('silver_legacy', 'document_summaries') }} s
+LEFT JOIN {{ ref('document_summaries') }} s
   ON s.doc_id = d.doc_id

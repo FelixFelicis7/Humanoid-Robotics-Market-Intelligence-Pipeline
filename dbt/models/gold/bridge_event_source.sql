@@ -7,5 +7,5 @@ SELECT
   event_id,
   doc_id,
   max(extracted_event_id = event_id) AS is_primary_source
-FROM {{ source('silver_legacy', 'event_dedup_map') }}
+FROM {{ ref('event_dedup_map') }}
 GROUP BY event_id, doc_id

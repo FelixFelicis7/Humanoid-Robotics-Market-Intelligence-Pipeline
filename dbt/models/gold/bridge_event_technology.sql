@@ -9,7 +9,7 @@ SELECT DISTINCT
 FROM (
   SELECT event_id AS extracted_event_id,
          explode(technology_areas) AS technology_id
-  FROM {{ source('silver_legacy', 'events_extracted') }}
+  FROM {{ ref('events_extracted') }}
 ) x
-JOIN {{ source('silver_legacy', 'event_dedup_map') }} m
+JOIN {{ ref('event_dedup_map') }} m
   ON m.extracted_event_id = x.extracted_event_id

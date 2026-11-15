@@ -9,7 +9,7 @@ WITH rep AS (
          m.extracted_event_id,
          m.doc_id    AS primary_source_doc_id,
          m.n_sources AS source_count
-  FROM {{ source('silver_legacy', 'event_dedup_map') }} m
+  FROM {{ ref('event_dedup_map') }} m
   WHERE m.extracted_event_id = m.event_id
 )
 SELECT
@@ -24,5 +24,5 @@ SELECT
   r.primary_source_doc_id,
   r.source_count
 FROM rep r
-JOIN {{ source('silver_legacy', 'events_extracted') }} e
+JOIN {{ ref('events_extracted') }} e
   ON e.event_id = r.extracted_event_id
