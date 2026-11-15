@@ -1,20 +1,26 @@
 resources:
   jobs:
     humanoid_robotics_dwh_pipeline:
-      name: humanoid robotics dwh pipeline
-      description: "End-to-end pipeline: bronze → silver (translation, AI extraction)
-        → gold star schema + RAG vector index. Run after uploading new
-        documents."
+      name: humanoid robotics dwh pipeline (bundle)
+      description: "End-to-end pipeline: bronze → silver (translation) → dbt
+        (silver AI extraction + gold star schema + tests) → metric views + RAG
+        vector index. Run after uploading new documents."
       email_notifications:
         on_failure:
-          - <your-email>
+          - ${var.notify_email}
         on_duration_warning_threshold_exceeded:
-          - <your-email>
+          - ${var.notify_email}
       health:
         rules:
           - metric: RUN_DURATION_SECONDS
             op: GREATER_THAN
             value: 900
+      environments:
+        - environment_key: dbt_env
+          spec:
+            environment_version: "5"
+            dependencies:
+              - dbt-databricks>=1.8.0,<2.0.0
       tasks:
         - task_key: bronze_company_info
           notebook_task:
@@ -37,22 +43,6 @@ resources:
           max_retries: 1
           min_retry_interval_millis: 60000
           disable_auto_optimization: false
-        - task_key: gold_dim_date
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/02_gold_dim_date.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_dim_technology
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/05_gold_dim_technology.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
         - task_key: silver_01_companies
           depends_on:
             - task_key: bronze_company_info
@@ -62,16 +52,6 @@ resources:
           max_retries: 1
           min_retry_interval_millis: 60000
           disable_auto_optimization: false
-        - task_key: gold_dim_company
-          depends_on:
-            - task_key: silver_01_companies
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/04_gold_dim_company.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
         - task_key: silver_02_company_alias
           depends_on:
             - task_key: bronze_company_info
@@ -99,141 +79,24 @@ resources:
           max_retries: 1
           min_retry_interval_millis: 60000
           disable_auto_optimization: false
-        - task_key: silver_04_doc_relevance
+        - task_key: dbt_build
           depends_on:
             - task_key: silver_03_documents
-          sql_task:
-            file:
-              path: ../scripts/silver/sql/04_silver_doc_relevance.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-        - task_key: silver_05_extraction
-          depends_on:
-            - task_key: silver_04_doc_relevance
-          sql_task:
-            file:
-              path: ../scripts/silver/sql/05_silver_document_extraction.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          timeout_seconds: 1500
-          health:
-            rules:
-              - metric: RUN_DURATION_SECONDS
-                op: GREATER_THAN
-                value: 300
-        - task_key: silver_06_extraction_parse
-          depends_on:
-            - task_key: silver_05_extraction
-          sql_task:
-            file:
-              path: ../scripts/silver/sql/06_silver_extraction_parse.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_dim_source
-          depends_on:
-            - task_key: silver_06_extraction_parse
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/03_gold_dim_source.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: silver_09_event_companies
-          depends_on:
-            - task_key: silver_06_extraction_parse
             - task_key: silver_01_companies
             - task_key: silver_02_company_alias
-          sql_task:
-            file:
-              path: ../scripts/silver/sql/09_silver_event_companies.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: silver_11_event_dedup
-          depends_on:
-            - task_key: silver_06_extraction_parse
-          sql_task:
-            file:
-              path: ../scripts/silver/sql/11_silver_event_dedup.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_bridge_event_company
-          depends_on:
-            - task_key: silver_09_event_companies
-            - task_key: silver_11_event_dedup
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/06_gold_bridge_event_company.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_bridge_event_source
-          depends_on:
-            - task_key: silver_11_event_dedup
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/08_gold_bridge_event_source.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_bridge_event_technology
-          depends_on:
-            - task_key: silver_11_event_dedup
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/07_gold_bridge_event_technology.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_fct_events
-          depends_on:
-            - task_key: silver_11_event_dedup
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/01_gold_fct_events.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_constraints
-          depends_on:
-            - task_key: gold_fct_events
-            - task_key: gold_bridge_event_company
-            - task_key: gold_dim_company
-            - task_key: gold_dim_date
-            - task_key: gold_dim_technology
-            - task_key: gold_dim_source
-            - task_key: gold_bridge_event_technology
-            - task_key: gold_bridge_event_source
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/99_gold_constraints.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
-        - task_key: gold_comments
-          depends_on:
-            - task_key: gold_constraints
-          sql_task:
-            file:
-              path: ../scripts/gold/sql/comments.sql
-              source: WORKSPACE
-            warehouse_id: ${var.warehouse_id}
-          max_retries: 1
-          min_retry_interval_millis: 60000
+          environment_key: dbt_env
+          max_retries: 0
+          timeout_seconds: 2700
+          disable_auto_optimization: true
+          dbt_task:
+            project_directory: ../dbt
+            profiles_directory: dbt_profiles/
+            commands:
+              - "dbt deps --target=${bundle.target}"
+              - "dbt build --target=${bundle.target}"
         - task_key: gold_metric_views
           depends_on:
-            - task_key: gold_comments
+            - task_key: dbt_build
           sql_task:
             file:
               path: ../scripts/gold/sql/metric_views.sql
@@ -243,7 +106,7 @@ resources:
           min_retry_interval_millis: 60000
         - task_key: silver_13_doc_chunks
           depends_on:
-            - task_key: silver_09_event_companies
+            - task_key: dbt_build
           notebook_task:
             notebook_path: ../scripts/silver/13_silver_doc_chunks.ipynb
             source: WORKSPACE
@@ -260,7 +123,7 @@ resources:
           min_retry_interval_millis: 60000
           disable_auto_optimization: false
       tags:
-        env: dev
+        env: ${bundle.target}
         project: humanoid-market-intel
       queue:
         enabled: true
