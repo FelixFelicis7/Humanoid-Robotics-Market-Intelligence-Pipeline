@@ -28,6 +28,8 @@ Status values: *Accepted* (in use), *Deferred* (decided, not yet implemented),
 | 13 | Local app calls Databricks remotely; API separate from UI | RAG | Accepted |
 | 14 | Source text never goes to GitHub | Governance | Accepted |
 | 15 | Translations are append-only; 03 stops if one is missing | AI cost | Accepted |
+| 16 | Original notebooks are kept in sync with the `.sql` files | Code maintenance | Accepted |
+| 17 | Job managed as an Asset Bundle; new Job instead of bind; CD deploys only | Deployment | Accepted |
 
 ---
 
@@ -371,3 +373,50 @@ Databricks); keep them unchanged as reference (the cause of the drift).
 
 **Consequences.** Every SQL change touches two files. Phase 5 (dbt) replaces both
 with dbt models, which ends the duplication.
+
+## 17. Job managed as an Asset Bundle; new Job instead of bind; CD deploys only
+
+**Context.** After the dbt migration, dbt ran only locally (`dev`) and in CI (`ci`).
+The production Job was built by hand in the Databricks UI and still ran the
+silver / gold `.sql` files from the Databricks Git folder. Every code change needed
+four manual steps (push, pull in the Git folder, edit the Job in the UI, run), and
+nothing guaranteed that the Job used the code on `main`.
+
+**Decision.**
+- The Job is defined as code: `databricks.yml` + `resources/humanoid_pipeline.job.yml`
+  (Databricks Asset Bundle). The starting point was the YAML exported from the UI;
+  paths were made repo-relative. One `dbt_build` task replaces the 15 silver / gold
+  SQL tasks. Bronze, `03a` translation, notebook `03`, metric views, `doc_chunks`
+  and the vector index stay as separate tasks.
+- **New Job instead of `bind`.** The bundle deploys a new Job
+  `humanoid robotics dwh pipeline (bundle)`. The old UI Job is kept, marked
+  DEPRECATED, as a rollback path, and is deleted after about one week of stable
+  runs. The two Jobs write the same tables, so they must never run together.
+- **CD deploys only.** `.github/workflows/cd.yml` runs `bundle validate` and
+  `bundle deploy -t prod` on every merge to `main`. It does not run the Job, so a
+  merge never triggers AI calls; runs stay manual.
+- **`dev` target runs only `dbt_build`** (`bundle run --only dbt_build`). The
+  notebooks still write to fixed schemas, so a full `dev` run would overwrite
+  production tables.
+- **No workspace details in the public repo.** The host is read from the local CLI
+  profile or the `DATABRICKS_HOST` secret; the e-mail comes from
+  `BUNDLE_VAR_notify_email`; the dbt task gets host and token from Databricks at
+  run time.
+- The first production run was done by hand, with `DEEP CLONE` backups of the two
+  AI tables, and checked before CD was enabled.
+
+**Alternatives.** `bundle deployment bind` to take over the existing Job (keeps the
+Job ID and run history, but there is no untouched copy to fall back to); write the
+Job YAML from scratch or with `bundle generate` (the UI export already existed);
+let CD also run the Job after deploying (every merge, even a docs change, would
+start a full run with possible AI calls); keep the Job in the UI (no review, no
+history, no automation).
+
+**Consequences.** `main` is now what runs in production: change → PR → CI → merge →
+CD. The Job must not be edited in the UI, because the next deploy overwrites it.
+The Databricks Git folder is no longer used by the new Job. Data files (documents,
+manifest, seeds) are still uploaded to the Volume by hand; CD only handles code.
+Follow-ups: parameterise the notebook schemas so `dev` can run the whole Job; delete
+the old Job, the backup tables and the replaced `.sql` files after the trial
+period; consider a service principal instead of a personal token when one is
+available.
