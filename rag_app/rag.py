@@ -26,6 +26,9 @@ from databricks.sdk import WorkspaceClient
 INDEX_NAME   = os.getenv("RAG_INDEX_NAME", "humanoid_robotics.silver.doc_chunks_index")
 LLM_ENDPOINT = os.getenv("RAG_LLM_ENDPOINT", "databricks-gpt-oss-120b")
 DEFAULT_TOP_K = 5
+DEFAULT_MAX_CHUNKS_PER_DOC: int | None = None   # None = no limit per document
+DEFAULT_QUERY_TYPE = "ANN"                      # "ANN" (vector only) or "HYBRID" (vector + keyword)
+CANDIDATE_POOL = 30                             # chunks fetched before the per-document cap is applied
 
 # Columns returned by the index (must be in columns_to_sync of 01_vector_index)
 RETURN_COLUMNS = [
@@ -129,22 +132,25 @@ def _to_int(value) -> int | None:
         return None
 
 
-def retrieve(question: str,
-             top_k: int = DEFAULT_TOP_K,
-             company_id: str | None = None,
-             year_from: int | None = None,
-             source_types: list[str] | None = None,
-             company_type: str | None = None) -> list[Chunk]:
-    """Ask the vector index for the top_k chunks closest to the question.
-    The index embeds the question with the same model used for the chunks."""
+def search_index(question: str,
+                 num_results: int,
+                 company_id: str | None = None,
+                 year_from: int | None = None,
+                 source_types: list[str] | None = None,
+                 company_type: str | None = None,
+                 query_type: str = DEFAULT_QUERY_TYPE) -> list[Chunk]:
+    """Ask the vector index for the num_results chunks closest to the question, best first.
+    The index embeds the question with the same model used for the chunks.
+    query_type: "ANN" = vector similarity only, "HYBRID" = vector + keyword match."""
     filters = build_filters(company_id, year_from, source_types, company_type)
 
     response = get_client().vector_search_indexes.query_index(
         index_name=INDEX_NAME,
         columns=RETURN_COLUMNS,
         query_text=question,
-        num_results=top_k,
+        num_results=num_results,
         filters_json=json.dumps(filters) if filters else None,
+        query_type=query_type,
     )
 
     # Response is a table: column names in the manifest, rows in data_array.
@@ -178,6 +184,42 @@ def retrieve(question: str,
             continue
         chunks.append(chunk)
     return chunks
+
+
+def select_chunks(candidates: list[Chunk],
+                  top_k: int,
+                  max_chunks_per_doc: int | None = None) -> list[Chunk]:
+    """Keep the best top_k chunks from a ranked candidate list.
+    With max_chunks_per_doc set, a document can fill at most that many of the
+    top_k places, so one long document cannot crowd the others out."""
+    if max_chunks_per_doc is None:
+        return candidates[:top_k]
+    selected: list[Chunk] = []
+    per_doc: dict[str, int] = {}
+    for chunk in candidates:                # best first
+        if per_doc.get(chunk.doc_id, 0) >= max_chunks_per_doc:
+            continue
+        per_doc[chunk.doc_id] = per_doc.get(chunk.doc_id, 0) + 1
+        selected.append(chunk)
+        if len(selected) == top_k:
+            break
+    return selected
+
+
+def retrieve(question: str,
+             top_k: int = DEFAULT_TOP_K,
+             company_id: str | None = None,
+             year_from: int | None = None,
+             source_types: list[str] | None = None,
+             company_type: str | None = None,
+             max_chunks_per_doc: int | None = DEFAULT_MAX_CHUNKS_PER_DOC,
+             query_type: str = DEFAULT_QUERY_TYPE) -> list[Chunk]:
+    """Search the index, then keep top_k chunks (optionally capped per document).
+    With a cap, a larger pool is fetched first so there is something to choose from."""
+    pool = top_k if max_chunks_per_doc is None else max(top_k, CANDIDATE_POOL)
+    candidates = search_index(question, pool, company_id, year_from,
+                              source_types, company_type, query_type)
+    return select_chunks(candidates, top_k, max_chunks_per_doc)
 
 
 # ---------------------------------------------------------------------------
@@ -310,8 +352,11 @@ def answer_question(question: str,
                     company_id: str | None = None,
                     year_from: int | None = None,
                     source_types: list[str] | None = None,
-                    company_type: str | None = None) -> RagAnswer:
-    chunks = retrieve(question, top_k, company_id, year_from, source_types, company_type)
+                    company_type: str | None = None,
+                    max_chunks_per_doc: int | None = DEFAULT_MAX_CHUNKS_PER_DOC,
+                    query_type: str = DEFAULT_QUERY_TYPE) -> RagAnswer:
+    chunks = retrieve(question, top_k, company_id, year_from, source_types, company_type,
+                      max_chunks_per_doc, query_type)
     hint = _filter_hint(company_id, year_from, source_types, company_type)
     if not chunks:
         return RagAnswer(question=question, answer=NO_ANSWER + hint)

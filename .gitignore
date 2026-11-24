@@ -3,6 +3,8 @@ __pycache__/
 .venv/
 .env
 .DS_Store
+# Claude Code local settings (personal permissions and paths)
+.claude/
 .ipynb_checkpoints/
 
 # Raw source documents (full text, HTML, PDF) stay local, never in GitHub
