@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from rag_app.rag import DEFAULT_TOP_K
+
 # Must match company_type values in silver.company
 CompanyType = Literal["humanoid_maker", "tier1", "investor",
                       "customer", "technology_partner", "other"]
@@ -24,7 +26,7 @@ class AskRequest(BaseModel):
 
     question: str = Field(..., min_length=1, max_length=1000,
                           examples=["Which tier-1 suppliers partnered with humanoid makers?"])
-    top_k: int = Field(5, ge=1, le=20, description="number of chunks to retrieve")
+    top_k: int = Field(DEFAULT_TOP_K, ge=1, le=20, description="number of chunks to retrieve")
     company_id: str | None = Field(None, examples=["schaeffler"],
                                    description="only documents involving this company")
     company_type: CompanyType | None = Field(None, examples=["tier1"],

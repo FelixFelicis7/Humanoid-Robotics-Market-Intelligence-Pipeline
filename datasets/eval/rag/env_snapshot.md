@@ -69,4 +69,6 @@ Verified on 2026-11-15 with the Databricks CLI, not copied from the UI:
 
 | Date | Commit | Change | Reason |
 |---|---|---|---|
-| | | | |
+| 2026-11-27 | `7bfc8fa` | Generation runs use ANN, k = 10, cap 1 and cap 2 (via script arguments; `rag.py` defaults unchanged) | Retrieval run `20261127_1314`: k = 10 is the knee; cap 1 best recall |
+| 2026-11-27 | (next commit) | Add system prompt v2 in `rag.py` (`PROMPTS`, `--prompt-version`); default stays v1 | Generation run `20261127_1454_cap2`: all-or-nothing refusals (Q05, Q18), facts moved to wrong year (Q12, Q13) |
+| 2026-11-28 | (next commit) | `rag.py` defaults: top_k 10, max 2 chunks per doc, ANN, prompt v2; API default top_k and Streamlit slider set to 10 | Generation run `20261128_1202_v2`: over-refusal 1/26 (v1: 3/26), correct refusals 4/4 |

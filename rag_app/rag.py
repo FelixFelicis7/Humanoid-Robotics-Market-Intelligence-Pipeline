@@ -25,8 +25,12 @@ from databricks.sdk import WorkspaceClient
 # ---------------------------------------------------------------------------
 INDEX_NAME   = os.getenv("RAG_INDEX_NAME", "humanoid_robotics.silver.doc_chunks_index")
 LLM_ENDPOINT = os.getenv("RAG_LLM_ENDPOINT", "databricks-gpt-oss-120b")
-DEFAULT_TOP_K = 5
-DEFAULT_MAX_CHUNKS_PER_DOC: int | None = None   # None = no limit per document
+# Defaults chosen by the RAG evaluation (datasets/eval/rag/, 2026-11-28):
+#   top_k 5 -> 10: recall@10 0.96 vs recall@5 0.82 (retrieval run 20261127_1314)
+#   cap 2: cap 1 had the best recall but sent only one chunk per document, so answers in
+#          another chunk were missed (over-refusal 4/26 vs 3/26 with cap 2)
+DEFAULT_TOP_K = 10
+DEFAULT_MAX_CHUNKS_PER_DOC: int | None = 2      # None = no limit per document
 DEFAULT_QUERY_TYPE = "ANN"                      # "ANN" (vector only) or "HYBRID" (vector + keyword)
 CANDIDATE_POOL = 30                             # chunks fetched before the per-document cap is applied
 
@@ -48,6 +52,12 @@ COMPANY_TYPE_MEANINGS = {
 }
 
 NO_ANSWER = "I couldn't find this in the indexed documents."
+
+
+def is_no_answer(text: str) -> bool:
+    """True when an answer is the fixed 'not found' reply (possibly followed by the filter hint).
+    A partial answer that only mentions a gap elsewhere in the text does not count."""
+    return text.strip().startswith(NO_ANSWER.rstrip("."))
 
 
 # ---------------------------------------------------------------------------
@@ -227,7 +237,12 @@ def retrieve(question: str,
 # ---------------------------------------------------------------------------
 _TYPE_LIST = "\n".join(f"  - {k}: {v}" for k, v in COMPANY_TYPE_MEANINGS.items())
 
-SYSTEM_PROMPT = f"""You are an analyst answering questions about the humanoid robotics industry.
+# Prompt versions. v1 = evaluation baseline. v2 changes (RAG eval, generation run 20261127_1454_cap2):
+#   - partial answers instead of all-or-nothing refusal (Q05, Q18 refused although part of the
+#     answer was in the sources)
+#   - each fact keeps the date of its own source (Q12, Q13 moved facts to another year/quarter)
+# Keep old versions so evaluation runs can be repeated and compared.
+_PROMPT_V1 = f"""You are an analyst answering questions about the humanoid robotics industry.
 
 Each source starts with a header and a "Companies" line listing the companies involved
 and their company type. Company types:
@@ -244,8 +259,37 @@ Rules:
 - If the sources do not contain the answer, reply exactly: "{NO_ANSWER}"
 - Answer in English, concisely (a short paragraph or a few bullet points)."""
 
+_PROMPT_V2 = f"""You are an analyst answering questions about the humanoid robotics industry.
 
-def build_prompt(question: str, chunks: list[Chunk]) -> list[dict]:
+Each source starts with a header and a "Companies" line listing the companies involved
+and their company type. The header also shows the source's publication date. Company types:
+{_TYPE_LIST}
+
+Rules:
+- Use ONLY the sources provided by the user. Do not use outside knowledge.
+- When you say what kind of company something is (e.g. "tier-1 supplier"),
+  use only the "Companies" line. If a company is not listed there, do not label it.
+- After every claim, cite the source id in square brackets, e.g. [D0004].
+  Cite several sources like [D0004][D0001]. Only use ids that appear in the sources.
+  Never mention source ids anywhere else in the text.
+- Dates: mention dates when describing announcements, deals or funding. Take each date from
+  the text or header of the source the fact comes from. Never move a fact to another year,
+  quarter or month to fit the question. If the question asks about a period and a fact falls
+  outside it, leave the fact out.
+- Partial answers: if the sources answer only part of the question, answer that part and then
+  say in one sentence which part the sources do not cover (for example
+  "The sources do not state the size of the site."). Do not guess the missing part.
+- If nothing in the sources is relevant to the question, reply exactly: "{NO_ANSWER}"
+  Use this sentence only in that case, and never inside a longer answer.
+- Answer in English, concisely (a short paragraph or a few bullet points)."""
+
+PROMPTS = {"v1": _PROMPT_V1, "v2": _PROMPT_V2}
+DEFAULT_PROMPT_VERSION = "v2"      # v2: over-refusal 3/26 -> 1/26, correct refusals kept at 4/4
+SYSTEM_PROMPT = PROMPTS[DEFAULT_PROMPT_VERSION]
+
+
+def build_prompt(question: str, chunks: list[Chunk],
+                 prompt_version: str = DEFAULT_PROMPT_VERSION) -> list[dict]:
     """Group chunks by document and label each document with its doc_id."""
     by_doc: dict[str, list[Chunk]] = {}
     for c in chunks:                       # keeps retrieval order (best first)
@@ -263,7 +307,7 @@ def build_prompt(question: str, chunks: list[Chunk]) -> list[dict]:
 
     user_message = "Sources:\n\n" + "\n\n---\n\n".join(blocks) + f"\n\nQuestion: {question}"
     return [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": PROMPTS[prompt_version]},
         {"role": "user", "content": user_message},
     ]
 
@@ -354,16 +398,17 @@ def answer_question(question: str,
                     source_types: list[str] | None = None,
                     company_type: str | None = None,
                     max_chunks_per_doc: int | None = DEFAULT_MAX_CHUNKS_PER_DOC,
-                    query_type: str = DEFAULT_QUERY_TYPE) -> RagAnswer:
+                    query_type: str = DEFAULT_QUERY_TYPE,
+                    prompt_version: str = DEFAULT_PROMPT_VERSION) -> RagAnswer:
     chunks = retrieve(question, top_k, company_id, year_from, source_types, company_type,
                       max_chunks_per_doc, query_type)
     hint = _filter_hint(company_id, year_from, source_types, company_type)
     if not chunks:
         return RagAnswer(question=question, answer=NO_ANSWER + hint)
 
-    raw = generate(build_prompt(question, chunks))
+    raw = generate(build_prompt(question, chunks, prompt_version))
     answer, sources = format_citations(raw, chunks)
-    if NO_ANSWER.rstrip(".") in answer:
+    if is_no_answer(answer):
         # The LLM found nothing useful in the retrieved chunks: the filters may be the reason
         answer = NO_ANSWER + hint
         sources = []

@@ -163,7 +163,8 @@ with st.sidebar:
         "Source type", options=options["source_types"],
         placeholder="All source types",
     )
-    top_k = st.slider("Chunks to retrieve (top k)", min_value=1, max_value=20, value=5,
+    # value matches rag.DEFAULT_TOP_K (the UI talks to the API only, so it does not import rag.py)
+    top_k = st.slider("Chunks to retrieve (top k)", min_value=1, max_value=20, value=10,
                       help="More chunks = better coverage for broad questions, longer prompts.")
 
     st.divider()

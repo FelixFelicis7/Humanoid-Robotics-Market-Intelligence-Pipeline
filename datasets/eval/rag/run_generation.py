@@ -68,6 +68,8 @@ def main() -> None:
     parser.add_argument("--cap", type=int, default=rag.DEFAULT_MAX_CHUNKS_PER_DOC,
                         help="max chunks per document (default: rag.py default)")
     parser.add_argument("--query-type", choices=["ANN", "HYBRID"], default=rag.DEFAULT_QUERY_TYPE)
+    parser.add_argument("--prompt-version", choices=sorted(rag.PROMPTS), default=rag.DEFAULT_PROMPT_VERSION,
+                        help="system prompt version in rag.py (default: rag.py default)")
     parser.add_argument("--only", help="comma-separated question ids, e.g. Q03,Q11")
     parser.add_argument("--tag", help="suffix for the output file name, e.g. rerun or v2")
     parser.add_argument("--questions", type=Path, default=HERE / "questions.csv")
@@ -86,6 +88,7 @@ def main() -> None:
         try:
             result = rag.answer_question(q["question"], top_k=args.top_k,
                                          max_chunks_per_doc=args.cap, query_type=args.query_type,
+                                         prompt_version=args.prompt_version,
                                          **filter_args(q.get("filters", "")))
             error = ""
         except Exception as exc:  # keep going: one failed call must not lose the whole run
@@ -108,9 +111,10 @@ def main() -> None:
             "top_k": args.top_k,
             "max_chunks_per_doc": args.cap or "",
             "query_type": args.query_type,
+            "prompt_version": args.prompt_version,
             "answer": result.answer,
             "raw_answer": result.raw_answer,
-            "refused": "Y" if rag.NO_ANSWER.rstrip(".") in result.answer else "N",
+            "refused": "Y" if rag.is_no_answer(result.answer) else "N",
             "cited_doc_ids": " ".join(cited),
             "retrieved_doc_ids": " ".join(retrieved),
             "retrieved_chunk_ids": " ".join(c.chunk_id for c in result.chunks),
@@ -135,7 +139,8 @@ def main() -> None:
 
     refuse = [r for r in rows if r["should_refuse"] == "Y"]
     answerable = [r for r in rows if r["should_refuse"] != "Y"]
-    print(f"\n{len(rows)} questions, top_k={args.top_k}, cap={args.cap}, query_type={args.query_type}")
+    print(f"\n{len(rows)} questions, top_k={args.top_k}, cap={args.cap}, query_type={args.query_type}, "
+          f"prompt={args.prompt_version}")
     print(f"should refuse: {sum(r['refused'] == 'Y' for r in refuse)}/{len(refuse)} refused")
     print(f"should answer: {sum(r['refused'] == 'Y' for r in answerable)}/{len(answerable)} refused (over-refusal)")
     print(f"errors: {sum(bool(r['run_error']) for r in rows)}")
